@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KZB Mobile — Sifatli Telefonlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;
+  --bg2:#0f0f18;
+  --bg3:#161620;
+  --card:#13131c;
+  --accent:#7c6fff;
+  --accent2:#ff6b8a;
+  --gold:#f5c842;
+  --text:#f0eff8;
+  --muted:#88889a;
+  --border:rgba(255,255,255,0.07);
+  --radius:20px;
+  --grad:linear-gradient(135deg,#7c6fff,#ff6b8a);
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:16px;
+  line-height:1.6;overflow-x:hidden;
+}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 4%;
+  background:rgba(10,10,15,0.82);
+  backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1.45rem;letter-spacing:-0.03em;
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.nav-links{display:flex;gap:1.8rem;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:0.88rem;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{
+  background:var(--grad);color:#fff;
+  padding:0.5rem 1.3rem;border-radius:50px;
+  font-weight:600;font-size:0.85rem;text-decoration:none;
+  transition:opacity 0.2s,transform 0.2s;
+}
+.nav-cta:hover{opacity:0.85;transform:translateY(-1px)}
+
+/* HERO */
+.hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:7rem 4% 4rem;position:relative;overflow:hidden;
+}
+.hero-glow{position:absolute;pointer-events:none;border-radius:50%}
+.hero-glow-1{
+  width:620px;height:620px;
+  background:radial-gradient(circle,rgba(124,111,255,.13) 0%,transparent 70%);
+  top:-140px;right:3%;
+}
+.hero-glow-2{
+  width:380px;height:380px;
+  background:radial-gradient(circle,rgba(255,107,138,.09) 0%,transparent 70%);
+  bottom:-60px;left:8%;
+}
+.hero-inner{
+  max-width:1200px;margin:0 auto;width:100%;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:3rem;align-items:center;position:relative;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:rgba(124,111,255,0.12);border:1px solid rgba(124,111,255,0.35);
+  padding:0.35rem 1rem;border-radius:50px;
+  font-size:0.78rem;font-weight:600;color:#b0acff;
+  margin-bottom:1.5rem;letter-spacing:0.06em;text-transform:uppercase;
+}
+.hero-badge::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#b0acff;animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
+.hero h1{
+  font-family:'Syne',sans-serif;font-size:clamp(2.4rem,4.5vw,4rem);
+  font-weight:800;line-height:1.07;letter-spacing:-0.035em;margin-bottom:1.4rem;
+}
+.hero h1 em{
+  font-style:normal;background:var(--grad);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-desc{color:var(--muted);font-size:1.02rem;max-width:480px;margin-bottom:2.2rem;line-height:1.78}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
+.btn-primary{
+  background:var(--grad);color:#fff;
+  padding:0.85rem 2rem;border-radius:50px;border:none;
+  font-size:0.95rem;font-weight:600;cursor:pointer;
+  text-decoration:none;display:inline-block;
+  transition:transform 0.2s,box-shadow 0.2s;font-family:'DM Sans',sans-serif;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(124,111,255,.35)}
+.btn-outline{
+  border:1px solid rgba(255,255,255,.18);color:var(--text);
+  padding:0.85rem 2rem;border-radius:50px;
+  font-size:0.95rem;font-weight:500;
+  text-decoration:none;display:inline-block;
+  transition:border-color 0.2s,background 0.2s;font-family:'DM Sans',sans-serif;
+}
+.btn-outline:hover{border-color:rgba(124,111,255,.5);background:rgba(124,111,255,.06)}
+
+/* Hero visual */
+.hero-visual{display:flex;justify-content:center;align-items:center;position:relative}
+.phone-showcase{position:relative;width:320px;height:480px}
+.phone-card{
+  position:absolute;background:var(--card);
+  border:1px solid var(--border);border-radius:20px;
+  padding:1.1rem 1.4rem;transition:transform 0.3s;
+}
+.phone-card:hover{transform:translateY(-5px)}
+.phone-main{
+  width:185px;height:340px;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:0.7rem;
+  border:1px solid rgba(124,111,255,.28);
+  box-shadow:0 0 60px rgba(124,111,255,.1);
+}
+.phone-main img{
+  width:105px;height:155px;object-fit:contain;
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.65));
+}
+.phone-brand{font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;color:var(--accent)}
+.phone-price{font-size:0.75rem;color:var(--muted)}
+.phone-float{width:138px;padding:0.85rem 1rem}
+.phone-float-1{top:8px;right:-18px;animation:float 4s ease-in-out infinite}
+.phone-float-2{bottom:20px;left:-28px;animation:float 4s ease-in-out infinite 2s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.float-label{font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px}
+.float-val{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;color:var(--text)}
+
+/* STATS */
+.stats{
+  padding:2.5rem 4%;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:var(--bg2);
+}
+.stats-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+.stat{text-align:center}
+.stat-num{
+  font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-label{color:var(--muted);font-size:0.82rem;margin-top:0.2rem}
+
+/* SECTION */
+section{padding:5.5rem 4%}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-tag{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:0.7rem}
+.section-title{
+  font-family:'Syne',sans-serif;font-size:clamp(1.7rem,3.2vw,2.6rem);
+  font-weight:800;letter-spacing:-0.025em;margin-bottom:0.9rem;line-height:1.1;
+}
+.section-title em{font-style:normal;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.section-desc{color:var(--muted);max-width:540px;line-height:1.78;margin-bottom:2.8rem}
+.divider{width:48px;height:3px;background:var(--grad);border-radius:3px;margin:0.8rem 0 2.8rem}
+
+/* BRANDS */
+.brands-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:1.1rem}
+.brand-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.5rem 1rem 1.25rem;
+  text-align:center;overflow:hidden;
+  transition:border-color 0.3s,transform 0.3s,box-shadow 0.3s;
+  cursor:default;position:relative;
+}
+.brand-card::before{
+  content:'';position:absolute;inset:0;opacity:0;
+  background:linear-gradient(135deg,rgba(124,111,255,.07),rgba(255,107,138,.06));
+  transition:opacity 0.3s;pointer-events:none;
+}
+.brand-card:hover{border-color:rgba(124,111,255,.45);transform:translateY(-6px);box-shadow:0 16px 40px rgba(124,111,255,.1)}
+.brand-card:hover::before{opacity:1}
+.brand-phone-img{
+  width:100%;height:170px;object-fit:contain;object-position:center bottom;
+  display:block;margin-bottom:0.9rem;
+  transition:transform 0.4s;filter:drop-shadow(0 8px 20px rgba(0,0,0,.55));
+}
+.brand-card:hover .brand-phone-img{transform:scale(1.07) translateY(-4px)}
+.brand-name{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.2rem}
+.brand-desc{font-size:0.72rem;color:var(--muted)}
+.brand-new{
+  display:inline-block;margin-top:0.5rem;
+  background:rgba(124,111,255,.14);color:#b0acff;
+  font-size:0.66rem;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:0.04em;
+}
+
+/* DEALS */
+.deals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.1rem}
+.deal-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  transition:transform 0.3s,border-color 0.3s,box-shadow 0.3s;
+}
+.deal-card:hover{transform:translateY(-5px);border-color:rgba(245,200,66,.3);box-shadow:0 16px 36px rgba(0,0,0,.3)}
+.deal-img{background:var(--bg3);height:190px;display:flex;align-items:center;justify-content:center;position:relative}
+.deal-img img{height:155px;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(0,0,0,.6));transition:transform 0.35s}
+.deal-card:hover .deal-img img{transform:scale(1.05) translateY(-4px)}
+.deal-badge{
+  position:absolute;top:12px;right:12px;
+  background:linear-gradient(135deg,#f5c842,#ff9f43);
+  color:#000;font-weight:800;font-size:0.75rem;padding:4px 11px;border-radius:30px;
+}
+.deal-body{padding:1.1rem 1.25rem}
+.deal-body h3{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.3rem}
+.deal-body p{color:var(--muted);font-size:0.78rem;margin-bottom:0.75rem}
+.deal-action{
+  display:block;width:100%;padding:0.65rem;
+  background:var(--grad);border:none;border-radius:12px;
+  color:#fff;font-weight:600;font-size:0.85rem;
+  cursor:pointer;text-align:center;text-decoration:none;
+  font-family:'DM Sans',sans-serif;transition:opacity 0.2s;
+}
+.deal-action:hover{opacity:0.88}
+
+/* WHY */
+.why-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.1rem}
+.why-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.75rem;
+  transition:border-color 0.3s,transform 0.3s;
+}
+.why-card:hover{border-color:rgba(124,111,255,.4);transform:translateY(-3px)}
+.why-icon{
+  width:46px;height:46px;border-radius:12px;
+  background:rgba(124,111,255,.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;margin-bottom:1.1rem;
+}
+.why-title{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.45rem;font-size:0.97rem}
+.why-text{color:var(--muted);font-size:0.84rem;line-height:1.7}
+
+/* SERVICES */
+.services-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+.service-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:2.25rem 1.75rem;
+  transition:border-color 0.3s,transform 0.3s;position:relative;overflow:hidden;
+}
+.service-card::after{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(124,111,255,.05);pointer-events:none;
+}
+.service-card:hover{border-color:rgba(124,111,255,.3);transform:translateY(-2px)}
+.service-card.featured{
+  grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:center;
+  border-color:rgba(124,111,255,.2);
+  background:linear-gradient(135deg,var(--card),var(--bg3));
+}
+.service-num{font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.9rem}
+.service-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:0.65rem}
+.service-text{color:var(--muted);font-size:0.84rem;line-height:1.72}
+.service-brands{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:1.3rem}
+.brand-tag{background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.22);color:#b0acff;padding:0.28rem 0.7rem;border-radius:50px;font-size:0.72rem;font-weight:600}
+.service-visual{background:var(--bg3);border-radius:16px;padding:2rem;text-align:center;border:1px solid var(--border)}
+
+/* CONTACT */
+.contact-section{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:start}
+.contact-cards{display:flex;flex-direction:column;gap:0.85rem}
+.contact-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:1.1rem 1.4rem;
+  display:flex;align-items:center;gap:1rem;
+  text-decoration:none;color:var(--text);
+  transition:border-color 0.2s,transform 0.2s;
+}
+.contact-card:hover{border-color:rgba(124,111,255,.45);transform:translateX(5px)}
+.contact-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.contact-icon.ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}
+.contact-icon.tg{background:linear-gradient(135deg,#2AABEE,#229ED9)}
+.contact-icon.ph{background:rgba(124,111,255,.15);border:1px solid rgba(124,111,255,.25)}
+.contact-label{font-size:0.72rem;color:var(--muted);margin-bottom:0.1rem}
+.contact-val{font-weight:600;font-size:0.92rem}
+.map-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;display:flex;flex-direction:column;gap:1.4rem}
+.map-address{background:var(--bg3);border-radius:14px;padding:1.4rem;border:1px solid rgba(124,111,255,.18)}
+.map-address-icon{font-size:1.6rem;margin-bottom:0.5rem}
+.map-address-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:var(--accent);margin-bottom:0.5rem}
+.map-address-text{font-size:0.88rem;line-height:1.75}
+.working-hours{display:flex;flex-direction:column;gap:0.4rem}
+.wh-row{display:flex;justify-content:space-between;font-size:0.85rem;padding:0.45rem 0;border-bottom:1px solid var(--border)}
+.wh-row:last-child{border:none}
+.wh-day{color:var(--muted)}
+.wh-time{font-weight:600;color:var(--accent)}
+.tez-javob{background:rgba(124,111,255,.06);border:1px solid rgba(124,111,255,.2);border-radius:12px;padding:1.1rem}
+.tez-javob p{font-size:0.86rem;line-height:1.6}
+.tez-javob strong{color:var(--accent)}
+
+/* FOOTER */
+footer{padding:2.5rem 4%;border-top:1px solid var(--border)}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.footer-copy{color:var(--muted);font-size:0.78rem;margin-top:0.3rem}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:0.82rem;transition:color 0.2s}
+.footer-links a:hover{color:var(--accent)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.7s ease forwards}
+.fu1{animation-delay:0.05s;opacity:0}.fu2{animation-delay:0.2s;opacity:0}
+.fu3{animation-delay:0.35s;opacity:0}.fu4{animation-delay:0.5s;opacity:0}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity 0.6s ease,transform 0.6s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* RESPONSIVE */
+@media(max-width:920px){
+  .hero-inner,.contact-grid,.services-grid{grid-template-columns:1fr}
+  .stats-inner{grid-template-columns:repeat(2,1fr)}
+  .hero-visual{display:none}
+  .service-card.featured{grid-column:auto;grid-template-columns:1fr}
+  nav .nav-links{display:none}
+  .footer-inner{flex-direction:column;text-align:center}
+}
+@media(max-width:600px){
+  .brands-grid{grid-template-columns:repeat(2,1fr)}
+  .deals-grid{grid-template-columns:1fr}
+  .why-grid{grid-template-columns:1fr}
+  section{padding:3.5rem 4%}
+  .hero{padding:6rem 4% 3rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">KZBMobile</div>
+  <ul class="nav-links">
+    <li><a href="#brands">Brendlar</a></li>
+    <li><a href="#deals">Chegirmalar</a></li>
+    <li><a href="#why">Nima uchun biz?</a></li>
+    <li><a href="#services">Xizmatlar</a></li>
+    <li><a href="#contact">Aloqa</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Bog'lanish</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge fade-up fu1">⭐ 5 yillik ishonchli tajriba</div>
+      <h1 class="fade-up fu2">Sifatli telefon —<br/><em>Arzon narxda</em></h1>
+      <p class="hero-desc fade-up fu3">KZB Mobile — iPhone, Samsung, Honor, Redmi, Infinix, Techno, Itel va boshqa brendlarning original smartfonlari. 5 yildan ortiq tajriba, kafolat va ishonch bilan.</p>
+      <div class="hero-btns fade-up fu4">
+        <a href="#brands" class="btn-primary">📱 Telefonlar</a>
+        <a href="#contact" class="btn-outline">Bog'lanish →</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="phone-showcase">
+        <div class="phone-card phone-float phone-float-1">
+          <div class="float-label">Eng ko'p sotilgan</div>
+          <div class="float-val">iPhone 17 Pro Max</div>
+        </div>
+        <div class="phone-card phone-main">
+          <img src="https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-17-pro-max.jpg" alt="iPhone 17" onerror="this.style.display='none'"/>
+          <div class="phone-brand">KZB Mobile</div>
+          <div class="phone-price">Original • Kafolat</div>
+        </div>
+        <div class="phone-card phone-float phone-float-2">
+          <div class="float-label">Chegirma</div>
+          <div class="float-val">Samsung S26 Ultra</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat reveal"><div class="stat-num">5+</div><div class="stat-label">Yillik tajriba</div></div>
+    <div class="stat reveal"><div class="stat-num">8+</div><div class="stat-label">Yetakchi brend</div></div>
+    <div class="stat reveal"><div class="stat-num">1000+</div><div class="stat-label">Mamnun mijozlar</div></div>
+    <div class="stat reveal"><div class="stat-num">100%</div><div class="stat-label">Original mahsulot</div></div>
+  </div>
+</div>
+
+<!-- BRANDS -->
+<section id="brands">
+  <div class="section-inner">
+    <div class="section-tag">Brendlar</div>
+    <h2 class="section-title reveal">Biz taqdim etadigan<br/>telefon brendlari</h2>
+    <p class="section-desc reveal">Dunyoning eng yaxshi smartfon brendlari bitta do'konda — original kafolat bilan.</p>
+    <div class="divider"></div>
+    <div class="brands-grid">
+      <div class="brand-card reveal">
+        <img class="brand-phone-img" src="https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-17-pro-max.jpg" alt="iPhone 17 Pro Max" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-16-pro-max.jpg'"/>
+        <div class="brand-name">Apple iPhone</div>
+        <div class="brand-desc">17 Pro Max · 17 Pro · 17 Air</div>
+        <span class="brand-new">✦ 2025 YANGI</span>
+      </div>
+      <div class="brand-card reveal">
+        <img class="brand-phone-img" src="https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-s26-ultra-1.jpg" alt="Samsung S26 Ultra" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s26-ultra-new.jpg'"/>
+        <div class="brand-name">Samsung Galaxy</div>
+        <div class="brand-desc">S26 Ultra · S26+ · S26</div>
+        <span class="brand-new">✦ 2026 YANGI</span>
+      </div>
+      <div class="brand-card reveal">
+        <img class="brand-phone-img" src="https://fdn2.gsmarena.com/vv/bigpic/honor-x9d-5g.jpg" alt="Honor X9d" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/honor-x9c-5g.jpg'"/>
+        <div class="brand-name">Honor</div>
+        <div class="brand-desc">X9d · Magic8 Pro</div>
+        <span class="brand-new">✦ 8300mAh</span>
+      </div>
+      <div class="brand-card reveal">
+        <img class="brand-phone-img" src="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-redmi-15c-5g.jpg" alt="Redmi 15C" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/xiaomi-redmi-14c.jpg'"/>
+        <div class="brand-name">Redmi</div>
+        <div class="brand-desc">Redmi 15C · Note 14 Pro</div>
+        <span class="brand-new">✦ ARZON</span>
+      </div>
+      <div class="brand-card reveal">
+        <img class="brand-phone-img" src="https://fdn2.gsmarena.com/vv/bigpic/infinix-note-40-pro-plus-5g.jpg" alt="Infinix" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/infinix-note-40.jpg'"/>
+        <div class="brand-name">Infinix</div>
+        <div class="brand-desc">Note 40 Pro · Hot 50</div>
+        <span class="brand-new">✦ YANGI</span>
+      </div>
+      <div class="brand-card reveal">
+        <img class="brand-phone-img" src="https://fdn2.gsmarena.com/vv/bigpic/tecno-camon-30-pro-5g.jpg" alt="Tecno" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/tecno-spark-20-pro-plus.jpg'"/>
+        <div class="brand-name">Tecno</div>
+        <div class="brand-desc">Camon 30 Pro · Spark 30</div>
+        <span class="brand-new">✦ YANGI</span>
+      </div>
+      <div class="brand-card reveal">
+        <img class="brand-phone-img" src="https://fdn2.gsmarena.com/vv/bigpic/itel-s25-ultra.jpg" alt="Itel" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/itel-p55-plus.jpg'"/>
+        <div class="brand-name">Itel</div>
+        <div class="brand-desc">S25 Ultra · P55+</div>
+        <span class="brand-new">✦ ARZON</span>
+      </div>
+      <div class="brand-card reveal" style="border-color:rgba(124,111,255,.25);background:rgba(124,111,255,.04);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:225px;gap:0.5rem">
+        <div style="font-size:2.2rem">✨</div>
+        <div class="brand-name" style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Va boshqalar</div>
+        <div class="brand-desc">Ko'plab modellar mavjud</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHEGIRMALAR -->
+<section id="deals" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-tag">Maxsus takliflar</div>
+    <h2 class="section-title reveal">🔥 Chegirmali modellar</h2>
+    <p class="section-desc reveal">Cheklangan vaqt uchun maxsus narxlar — tez harakatlaning!</p>
+    <div class="deals-grid">
+      <div class="deal-card reveal">
+        <div class="deal-img">
+          <img src="https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-17-pro-max.jpg" alt="iPhone 17 Pro Max" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-16-pro-max.jpg'"/>
+          <span class="deal-badge">–10%</span>
+        </div>
+        <div class="deal-body">
+          <h3>iPhone 17 Pro Max</h3>
+          <p>256GB · A19 Pro · Titan korpus · Kafolat</p>
+          <a href="#contact" class="deal-action">Buyurtma berish →</a>
+        </div>
+      </div>
+      <div class="deal-card reveal">
+        <div class="deal-img">
+          <img src="https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-s26-ultra-1.jpg" alt="Samsung S26 Ultra" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s26-ultra-new.jpg'"/>
+          <span class="deal-badge">–18%</span>
+        </div>
+        <div class="deal-body">
+          <h3>Samsung Galaxy S26 Ultra</h3>
+          <p>256GB · S Pen · 200MP · Kafolat bilan</p>
+          <a href="#contact" class="deal-action">Buyurtma berish →</a>
+        </div>
+      </div>
+      <div class="deal-card reveal">
+        <div class="deal-img">
+          <img src="https://fdn2.gsmarena.com/vv/bigpic/honor-x9d-5g.jpg" alt="Honor X9d" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/honor-x9c-5g.jpg'"/>
+          <span class="deal-badge">–22%</span>
+        </div>
+        <div class="deal-body">
+          <h3>Honor X9d</h3>
+          <p>8300mAh · 108MP · IP69K · 256GB</p>
+          <a href="#contact" class="deal-action">Buyurtma berish →</a>
+        </div>
+      </div>
+      <div class="deal-card reveal">
+        <div class="deal-img">
+          <img src="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-redmi-15c-5g.jpg" alt="Redmi 15C" onerror="this.src='https://fdn2.gsmarena.com/vv/bigpic/xiaomi-redmi-14c.jpg'"/>
+          <span class="deal-badge">–15%</span>
+        </div>
+        <div class="deal-body">
+          <h3>Redmi 15C</h3>
+          <p>128GB · 50MP · 6000mAh · 4G/5G</p>
+          <a href="#contact" class="deal-action">Buyurtma berish →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section id="why">
+  <div class="section-inner">
+    <div class="section-tag">Nima uchun KZB Mobile?</div>
+    <h2 class="section-title reveal">Ishonch, sifat va <em>kafolat</em></h2>
+    <p class="section-desc reveal">5 yil davomida minglab mijozlarimiz bizga ishonib kelishadi. Sababi oddiy — biz haqiqiy sifatni taqdim etamiz.</p>
+    <div class="why-grid">
+      <div class="why-card reveal"><div class="why-icon">✅</div><div class="why-title">100% Original mahsulot</div><div class="why-text">Barcha telefonlar rasmiy distributorlardan keladi. Soxta yoki refurbished mahsulot yo'q.</div></div>
+      <div class="why-card reveal"><div class="why-icon">🛡️</div><div class="why-title">Rasmiy kafolat</div><div class="why-text">Har bir telefon uchun rasmiy kafolat beriladi. Muammo bo'lsa — javobgarlik bizda.</div></div>
+      <div class="why-card reveal"><div class="why-icon">💰</div><div class="why-title">Qulay narxlar</div><div class="why-text">Sifatni qimmatchiliksiz taklif etamiz. Narxlar doim bozor narxidan qulay va adolatli.</div></div>
+      <div class="why-card reveal"><div class="why-icon">⭐</div><div class="why-title">5 yillik tajriba</div><div class="why-text">Telefonlar bozorida 5 yildan ortiq ishlayapmiz. Tajribamiz — sizning ishonchingiz.</div></div>
+      <div class="why-card reveal"><div class="why-icon">🤝</div><div class="why-title">Do'stona xizmat</div><div class="why-text">Har bir mijozga individual yondashamiz. Siz uchun eng to'g'ri modelni tanlaymiz.</div></div>
+      <div class="why-card reveal"><div class="why-icon">🚀</div><div class="why-title">Tez va qulay</div><div class="why-text">Buyurtmangizni tez rasmiylashtiramiz. Vaqtingizni tejashga harakat qilamiz.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services" style="background:var(--bg2);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="section-tag">Xizmatlar</div>
+    <h2 class="section-title reveal">Nima xizmat ko'rsatamiz?</h2>
+    <p class="section-desc reveal">Telefondan tortib aksesssuarlargacha — hamma narsani bir joydan topasiz.</p>
+    <div class="services-grid">
+      <div class="service-card featured reveal">
+        <div>
+          <div class="service-num">01 — Asosiy</div>
+          <div class="service-title">Smartfon sotish</div>
+          <div class="service-text">Original, kafolatlangan telefonlar. iPhone, Samsung va boshqa brend modellar mavjud. Har bir mijoz uchun eng qulay variant tanlanadi.</div>
+          <div class="service-brands">
+            <span class="brand-tag">iPhone</span><span class="brand-tag">Samsung</span>
+            <span class="brand-tag">Honor</span><span class="brand-tag">Redmi</span>
+            <span class="brand-tag">Infinix</span><span class="brand-tag">Techno</span><span class="brand-tag">Itel</span>
+          </div>
+        </div>
+        <div class="service-visual">
+          <div style="font-size:3.5rem;margin-bottom:0.9rem">📱</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:1rem">Original Telefonlar</div>
+          <div style="color:var(--muted);font-size:0.78rem;margin-top:0.4rem">Kafolat bilan</div>
+        </div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">02</div>
+        <div class="service-title">Aksessuarlar</div>
+        <div class="service-text">Chexol, qopqoq, zaryadlovchi, quloqlik va boshqa aksessuarlar. Sizning telefoningizga mos mahsulot topamiz.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">03</div>
+        <div class="service-title">Konsultatsiya</div>
+        <div class="service-text">Qaysi telefon sizga mos? Budjeting qancha? Bizdan bepul maslahat oling — 5 yillik tajribamiz xizmatingizda.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">04</div>
+        <div class="service-title">Mo'ljal va taqqoslash</div>
+        <div class="service-text">Bir nechta modelni tanlashda qiyinchilik sezayapsizmi? Biz har bir modelni batafsil tushuntirib beramiz.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <div class="section-inner">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div class="section-tag">Aloqa</div>
+        <h2 class="section-title reveal" style="margin-bottom:1rem">Biz bilan<br/><em>bog&#8216;lanish</em></h2>
+        <p class="reveal" style="color:var(--muted);line-height:1.78;margin-bottom:2rem">Savol, taklif yoki buyurtma uchun quyidagi kanallar orqali murojaat qiling. Tez javob beramiz!</p>
+        <div class="contact-cards">
+          <a href="https://instagram.com/kzbmobile" target="_blank" rel="noopener" class="contact-card reveal">
+            <div class="contact-icon ig">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5.5" stroke="white" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1.2" fill="white"/></svg>
+            </div>
+            <div><div class="contact-label">Instagram</div><div class="contact-val">@kzbmobile</div></div>
+          </a>
+          <a href="https://t.me/kzbmobile" target="_blank" rel="noopener" class="contact-card reveal">
+            <div class="contact-icon tg">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div><div class="contact-label">Telegram</div><div class="contact-val">t.me/kzbmobile</div></div>
+          </a>
+          <a href="tel:+998700560100" class="contact-card reveal">
+            <div class="contact-icon ph">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="#b0acff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div><div class="contact-label">Telefon 1</div><div class="contact-val">+998 70 056 01 00</div></div>
+          </a>
+          <a href="tel:+998200014830" class="contact-card reveal">
+            <div class="contact-icon ph">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="#b0acff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div><div class="contact-label">Telefon 2</div><div class="contact-val">+998 20 001 48 30</div></div>
+          </a>
+        </div>
+      </div>
+      <div class="map-box reveal">
+        <div class="map-address">
+          <div class="map-address-icon">📍</div>
+          <div class="map-address-title">Manzilimiz</div>
+          <div class="map-address-text">
+            Samarqand viloyati,<br/>
+            <strong>Bulung&#8216;ur bozori</strong><br/>
+            <span style="color:var(--muted);font-size:0.8rem">Bozor ichida, asosiy savdo qatori</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.9rem;font-size:0.95rem">Ish vaqtlari</div>
+          <div class="working-hours">
+            <div class="wh-row"><span class="wh-day">Dushanba – Juma</span><span class="wh-time">09:00 – 19:00</span></div>
+            <div class="wh-row"><span class="wh-day">Shanba</span><span class="wh-time">09:00 – 17:00</span></div>
+            <div class="wh-row"><span class="wh-day">Yakshanba</span><span class="wh-time">Dam olish kuni</span></div>
+          </div>
+        </div>
+        <div class="tez-javob">
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.4rem">💬 Tez javob</div>
+          <p>Telegram yoki Instagram'da yozsangiz, <strong>30 daqiqa</strong> ichida javob beramiz.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">KZBMobile</div>
+      <div class="footer-copy">© 2025 KZBMobile. Barcha huquqlar himoyalangan.</div>
+    </div>
+    <div class="footer-links">
+      <a href="https://instagram.com/kzbmobile" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/kzbmobile" target="_blank" rel="noopener">Telegram</a>
+      <a href="tel:+998700560100">Qo'ng'iroq</a>
+    </div>
+    <div style="font-size:0.75rem;color:var(--muted)">5 yillik tajriba • Original • Kafolat</div>
+  </div>
+</footer>
+
+<script>
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, {threshold: 0.08, rootMargin: '0px 0px -36px 0px'});
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
