@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<title>English Mini</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#0f0f18;--card:#13131c;--card2:#1a1a26;
+  --accent:#7c6fff;--accent2:#ff6b8a;--gold:#f5c842;--ok:#3ddc97;--bad:#ff5c7a;
+  --text:#f0eff8;--muted:#88889a;--border:rgba(255,255,255,0.08);
+  --radius:20px;--grad:linear-gradient(135deg,#7c6fff,#ff6b8a);
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.5;
+  -webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+input,select{font:inherit;color:var(--text)}
+.app{max-width:520px;margin:0 auto;min-height:100%;padding:16px 16px 96px}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:6px 0 18px}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-0.03em;
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.streak{display:flex;gap:6px;align-items:center;background:var(--card);border:1px solid var(--border);
+  padding:6px 12px;border-radius:999px;font-weight:600;font-size:.9rem}
+
+h2{font-family:'Syne',sans-serif;font-size:1.25rem;margin-bottom:12px}
+.muted{color:var(--muted);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center}
+.stat b{display:block;font-family:'Syne',sans-serif;font-size:1.5rem}
+.stat span{color:var(--muted);font-size:.78rem}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--grad);border-radius:99px;transition:width .4s}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 16px;border-radius:14px;
+  font-weight:600;background:var(--grad);color:#fff;transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:var(--card2);border:1px solid var(--border)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+
+/* category chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:8px 14px;border-radius:999px;background:var(--card);border:1px solid var(--border);font-size:.88rem;white-space:nowrap}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* flashcard */
+.flip{perspective:1000px;height:260px;margin-bottom:14px}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;cursor:pointer}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;
+  background:var(--card);border:1px solid var(--border)}
+.face.back{transform:rotateY(180deg);background:linear-gradient(160deg,#1c1830,#13131c)}
+.word{font-family:'Syne',sans-serif;font-size:2.1rem;font-weight:700;word-break:break-word}
+.trans{font-size:1.5rem;font-weight:600;color:var(--gold)}
+.example{margin-top:12px;color:var(--muted);font-size:.92rem;font-style:italic}
+.hint{position:absolute;bottom:14px;color:var(--muted);font-size:.78rem}
+.speak{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;background:var(--card2);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.counter{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:10px}
+.know{background:rgba(61,220,151,.15);border:1px solid rgba(61,220,151,.4);color:var(--ok)}
+.dont{background:rgba(255,92,122,.12);border:1px solid rgba(255,92,122,.4);color:var(--bad)}
+
+/* quiz */
+.q-word{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700;text-align:center;margin:8px 0 4px;word-break:break-word}
+.opts{display:grid;gap:10px;margin-top:16px}
+.opt{padding:14px 16px;border-radius:14px;background:var(--card2);border:1px solid var(--border);text-align:left;font-weight:500}
+.opt.right{background:rgba(61,220,151,.18);border-color:var(--ok)}
+.opt.wrong{background:rgba(255,92,122,.15);border-color:var(--bad)}
+.field{width:100%;padding:14px 16px;border-radius:14px;background:var(--card2);border:1px solid var(--border);outline:none;margin-top:16px}
+.field:focus{border-color:var(--accent)}
+.feedback{text-align:center;margin-top:12px;font-weight:600;min-height:1.5em}
+.feedback.ok{color:var(--ok)}.feedback.bad{color:var(--bad)}
+.seg{display:flex;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:4px;margin-bottom:14px}
+.seg button{flex:1;padding:9px 6px;border-radius:10px;font-size:.85rem;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--card2);color:var(--text)}
+
+/* list */
+.w-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+.w-item:last-child{border-bottom:none}
+.w-item .t{flex:1;min-width:0}
+.w-item .t b{display:block;overflow-wrap:anywhere}
+.lvl{font-size:.72rem;padding:3px 8px;border-radius:99px;background:var(--card2);color:var(--muted);white-space:nowrap}
+.lvl.l3{color:var(--ok)}
+.icon-btn{width:36px;height:36px;border-radius:10px;background:var(--card2);flex:0 0 auto}
+.search{margin:0 0 10px}
+
+/* tabbar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(10,10,15,.9);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+nav.tabs .in{max-width:520px;margin:0 auto;display:flex}
+nav.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.72rem;color:var(--muted)}
+nav.tabs button span{font-size:1.25rem}
+nav.tabs button.on{color:var(--text)}
+.view{display:none;animation:fade .25s}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card2);
+  border:1px solid var(--border);padding:10px 18px;border-radius:12px;transition:.25s;pointer-events:none;z-index:50;max-width:90%}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.empty{text-align:center;padding:30px 10px;color:var(--muted)}
+.big-emoji{font-size:3rem;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">English Mini</div>
+    <div class="streak" title="Ketma-ket kunlar">🔥 <span id="streak">0</span></div>
+  </header>
+
+  <!-- HOME -->
+  <section class="view on" id="v-home">
+    <div class="card">
+      <h2>Salom! 👋</h2>
+      <p class="muted" id="daily-text">Bugungi maqsad: 10 ta so'z</p>
+      <div class="bar"><i id="daily-bar" style="width:0"></i></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="s-total">0</b><span>Jami so'z</span></div>
+      <div class="stat"><b id="s-learned">0</b><span>O'rganildi</span></div>
+      <div class="stat"><b id="s-acc">0%</b><span>Aniqlik</span></div>
+    </div>
+    <div class="card">
+      <h2>Bugungi so'z ✨</h2>
+      <div id="wotd"></div>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="go('cards')">🃏 Kartalar</button>
+      <button class="btn ghost" onclick="go('quiz')">🎯 Test</button>
+    </div>
+  </section>
+
+  <!-- FLASHCARDS -->
+  <section class="view" id="v-cards">
+    <h2>Kartalar</h2>
+    <div class="chips" id="cats-cards"></div>
+    <div id="cards-area"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="view" id="v-quiz">
+    <h2>Test</h2>
+    <div class="seg" id="quiz-mode">
+      <button data-m="en" class="on">EN → UZ</button>
+      <button data-m="uz">UZ → EN</button>
+      <button data-m="type">Yozish</button>
+      <button data-m="listen">Tinglash</button>
+    </div>
+    <div class="chips" id="cats-quiz"></div>
+    <div class="card" id="quiz-area"></div>
+  </section>
+
+  <!-- WORDS -->
+  <section class="view" id="v-words">
+    <h2>Mening so'zlarim</h2>
+    <div class="card">
+      <p class="muted" style="margin-bottom:8px">Yangi so'z qo'shish</p>
+      <input class="field" style="margin-top:0" id="add-en" placeholder="Inglizcha (masalan: apple)"/>
+      <input class="field" style="margin-top:8px" id="add-uz" placeholder="O'zbekcha (masalan: olma)"/>
+      <input class="field" style="margin-top:8px" id="add-ex" placeholder="Misol gap (ixtiyoriy)"/>
+      <button class="btn" style="margin-top:12px" onclick="addWord()">+ Qo'shish</button>
+    </div>
+    <input class="field search" id="search" placeholder="🔍 Qidirish..." oninput="renderList()"/>
+    <div class="card" id="word-list"></div>
+    <button class="btn ghost" onclick="resetProgress()">↺ Natijalarni tozalash</button>
+  </section>
+</div>
+
+<nav class="tabs"><div class="in">
+  <button data-v="home" class="on"><span>🏠</span>Bosh sahifa</button>
+  <button data-v="cards"><span>🃏</span>Kartalar</button>
+  <button data-v="quiz"><span>🎯</span>Test</button>
+  <button data-v="words"><span>📚</span>So'zlar</button>
+</div></nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Built-in vocabulary ---------- */
+const BASE = {
+  "Salomlashish":[
+    ["hello","salom","Hello, how are you?"],["goodbye","xayr","Goodbye, see you tomorrow."],
+    ["thank you","rahmat","Thank you for your help."],["please","iltimos","Please sit down."],
+    ["sorry","kechirasiz","Sorry, I am late."],["welcome","xush kelibsiz","Welcome to our home."],
+    ["good morning","xayrli tong","Good morning, teacher!"],["friend","do'st","She is my best friend."]],
+  "Oila":[
+    ["mother","ona","My mother is a doctor."],["father","ota","My father works in a bank."],
+    ["brother","aka / uka","I have one brother."],["sister","opa / singil","My sister is ten years old."],
+    ["family","oila","I love my family."],["child","bola","The child is sleeping."],
+    ["grandmother","buvi","My grandmother cooks plov."],["husband","er","Her husband is tall."]],
+  "Ovqat":[
+    ["bread","non","We eat bread every day."],["water","suv","Can I have some water?"],
+    ["apple","olma","An apple a day keeps the doctor away."],["meat","go'sht","I don't eat meat."],
+    ["tea","choy","Let's drink green tea."],["milk","sut","The milk is cold."],
+    ["egg","tuxum","I had two eggs for breakfast."],["rice","guruch","Plov is made with rice."]],
+  "Uy":[
+    ["house","uy","Their house is big."],["door","eshik","Close the door, please."],
+    ["window","deraza","Open the window."],["table","stol","The book is on the table."],
+    ["chair","stul","Sit on the chair."],["kitchen","oshxona","Mom is in the kitchen."],
+    ["bed","karavot","I go to bed at ten."],["key","kalit","I lost my key."]],
+  "Fe'llar":[
+    ["to go","bormoq","I go to school."],["to come","kelmoq","Come here, please."],
+    ["to eat","yemoq","We eat lunch at one."],["to read","o'qimoq","I read a book every night."],
+    ["to write","yozmoq","Write your name here."],["to speak","gapirmoq","Do you speak English?"],
+    ["to buy","sotib olmoq","I want to buy a phone."],["to learn","o'rganmoq","I learn English every day."]],
+  "Sifatlar":[
+    ["big","katta","It is a big city."],["small","kichik","I have a small car."],
+    ["beautiful","chiroyli","What a beautiful day!"],["cheap","arzon","This phone is cheap."],
+    ["expensive","qimmat","Gold is expensive."],["fast","tez","He runs very fast."],
+    ["happy","baxtli","I am happy today."],["new","yangi","I bought a new phone."]],
+  "Vaqt":[
+    ["today","bugun","Today is Monday."],["tomorrow","ertaga","See you tomorrow."],
+    ["yesterday","kecha","I was busy yesterday."],["week","hafta","A week has seven days."],
+    ["month","oy","Next month I will travel."],["year","yil","Happy New Year!"],
+    ["morning","ertalab","I run in the morning."],["evening","kechqurun","We watch TV in the evening."]],
+  "Ish va savdo":[
+    ["price","narx","What is the price?"],["money","pul","I don't have much money."],
+    ["shop","do'kon","The shop opens at nine."],["customer","mijoz","The customer is always right."],
+    ["phone","telefon","My phone is new."],["work","ish","I go to work by bus."],
+    ["discount","chegirma","Is there a discount?"],["delivery","yetkazib berish","Delivery is free."]]
+};
+
+/* ---------- Storage (safe) ---------- */
+const KEY = "englishMini.v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let S = Object.assign({custom:[], prog:{}, right:0, total:0, streak:0, lastDay:"", today:0, todayDate:""}, load());
+
+const today = () => new Date().toISOString().slice(0,10);
+function touchDay(){
+  const t = today();
+  if (S.todayDate !== t){ S.todayDate = t; S.today = 0; }
+  if (S.lastDay !== t){
+    const y = new Date(Date.now()-864e5).toISOString().slice(0,10);
+    S.streak = (S.lastDay === y) ? S.streak + 1 : 1;
+    S.lastDay = t;
+  }
+}
+
+/* ---------- Words ---------- */
+function allWords(){
+  const out = [];
+  for (const [cat, list] of Object.entries(BASE))
+    list.forEach(([en,uz,ex]) => out.push({id:"b:"+en, en, uz, ex, cat}));
+  S.custom.forEach(w => out.push({...w, cat:"Mening"}));
+  return out;
+}
+const lvl = id => (S.prog[id] && S.prog[id].lvl) || 0;   // 0..3 (3 = learned)
+function mark(w, ok){
+  const p = S.prog[w.id] || {lvl:0};
+  p.lvl = ok ? Math.min(3, p.lvl + 1) : 0;
+  p.seen = Date.now();
+  S.prog[w.id] = p;
+  S.total++; if (ok) S.right++;
+  touchDay(); S.today++;
+  save(); renderHome();
+}
+function cats(){ const c = ["Hammasi", ...Object.keys(BASE)]; if (S.custom.length) c.push("Mening"); return c; }
+function pool(cat){ const w = allWords(); return cat === "Hammasi" ? w : w.filter(x => x.cat === cat); }
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- Speech ---------- */
+function speak(text){
+  try{
+    if (!("speechSynthesis" in window)) return toast("Ovozli o'qish qo'llab-quvvatlanmaydi");
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US"; u.rate = 0.9;
+    const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith("en"));
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ---------- Navigation ---------- */
+function go(v){
+  document.querySelectorAll(".view").forEach(x => x.classList.toggle("on", x.id === "v-"+v));
+  document.querySelectorAll("nav.tabs button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  if (v === "home") renderHome();
+  if (v === "cards") startCards();
+  if (v === "quiz") nextQ();
+  if (v === "words") renderList();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => go(b.dataset.v));
+
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1800); }
+
+function chips(el, cur, onPick){
+  el.innerHTML = cats().map(c => `<button class="chip ${c===cur?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+  el.querySelectorAll(".chip").forEach(b => b.onclick = () => onPick(b.dataset.c));
+}
+
+/* ---------- Home ---------- */
+const GOAL = 10;
+function renderHome(){
+  if (S.todayDate !== today()) S.today = 0;
+  const w = allWords(), learned = w.filter(x => lvl(x.id) >= 3).length;
+  document.getElementById("s-total").textContent = w.length;
+  document.getElementById("s-learned").textContent = learned;
+  document.getElementById("s-acc").textContent = S.total ? Math.round(S.right/S.total*100)+"%" : "—";
+  const y = new Date(Date.now()-864e5).toISOString().slice(0,10);
+  document.getElementById("streak").textContent = (S.lastDay === today() || S.lastDay === y) ? S.streak : 0;
+  const d = Math.min(S.today, GOAL);
+  document.getElementById("daily-text").textContent = d >= GOAL ? `Bugungi maqsad bajarildi! 🎉 (${S.today} ta mashq)` : `Bugungi maqsad: ${d} / ${GOAL} ta mashq`;
+  document.getElementById("daily-bar").style.width = (d/GOAL*100)+"%";
+  // word of the day: stable per date
+  const seed = [...today()].reduce((a,c)=>a*31+c.charCodeAt(0)|0, 7);
+  const wd = w[Math.abs(seed) % w.length];
+  document.getElementById("wotd").innerHTML =
+    `<div style="display:flex;align-items:center;gap:12px">
+       <div style="flex:1"><div class="word" style="font-size:1.6rem">${esc(wd.en)}</div>
+       <div class="trans" style="font-size:1.1rem">${esc(wd.uz)}</div></div>
+       <button class="icon-btn" style="width:44px;height:44px;font-size:1.2rem" onclick='speak(${JSON.stringify(wd.en)})'>🔊</button>
+     </div>${wd.ex?`<p class="example" style="text-align:left">${esc(wd.ex)}</p>`:""}`;
+}
+
+/* ---------- Flashcards ---------- */
+let C = {cat:"Hammasi", deck:[], i:0};
+function startCards(cat){
+  if (cat) C.cat = cat;
+  chips(document.getElementById("cats-cards"), C.cat, startCards);
+  // unlearned words first, then shuffled
+  const p = shuffle(pool(C.cat));
+  C.deck = p.sort((a,b) => lvl(a.id) - lvl(b.id)).slice(0, 20);
+  C.i = 0; renderCard();
+}
+function renderCard(){
+  const a = document.getElementById("cards-area");
+  if (!C.deck.length){ a.innerHTML = `<div class="empty"><div class="big-emoji">📭</div>Bu bo'limda so'z yo'q</div>`; return; }
+  if (C.i >= C.deck.length){
+    a.innerHTML = `<div class="card empty"><div class="big-emoji">🎉</div><h2>Barakalla!</h2><p>${C.deck.length} ta kartani ko'rib chiqdingiz.</p>
+      <button class="btn" style="margin-top:16px" onclick="startCards()">Yana boshlash</button></div>`;
+    return;
+  }
+  const w = C.deck[C.i];
+  a.innerHTML = `
+    <div class="counter">${C.i+1} / ${C.deck.length} · ${esc(w.cat)} · ${"★".repeat(lvl(w.id))}${"☆".repeat(3-lvl(w.id))}</div>
+    <div class="flip" id="flip">
+      <div class="flip-inner">
+        <div class="face"><div class="word">${esc(w.en)}</div><div class="hint">Tarjimani ko'rish uchun bosing</div></div>
+        <div class="face back"><div class="trans">${esc(w.uz)}</div>${w.ex?`<div class="example">${esc(w.ex)}</div>`:""}</div>
+      </div>
+      <button class="speak" id="say">🔊</button>
+    </div>
+    <div class="row">
+      <button class="btn dont" onclick="cardAns(false)">✗ Bilmayman</button>
+      <button class="btn know" onclick="cardAns(true)">✓ Bilaman</button>
+    </div>`;
+  const f = document.getElementById("flip");
+  f.querySelector(".flip-inner").onclick = () => f.classList.toggle("flipped");
+  document.getElementById("say").onclick = e => { e.stopPropagation(); speak(w.en); };
+  speak(w.en);
+}
+function cardAns(ok){
+  const w = C.deck[C.i]; mark(w, ok);
+  if (!ok) C.deck.push(w);   // show again at the end
+  C.i++; renderCard();
+}
+
+/* ---------- Quiz ---------- */
+let Q = {cat:"Hammasi", mode:"en", cur:null, done:false, streak:0};
+document.querySelectorAll("#quiz-mode button").forEach(b => b.onclick = () => {
+  Q.mode = b.dataset.m;
+  document.querySelectorAll("#quiz-mode button").forEach(x => x.classList.toggle("on", x === b));
+  nextQ();
+});
+function pickWeighted(list){
+  // weaker words appear more often
+  const ws = list.map(w => 4 - lvl(w.id)), sum = ws.reduce((a,b)=>a+b,0);
+  let r = Math.random()*sum;
+  for (let i=0;i<list.length;i++){ r -= ws[i]; if (r <= 0) return list[i]; }
+  return list[list.length-1];
+}
+function nextQ(cat){
+  if (cat) Q.cat = cat;
+  chips(document.getElementById("cats-quiz"), Q.cat, nextQ);
+  const area = document.getElementById("quiz-area");
+  const p = pool(Q.cat);
+  if (p.length < 4){ area.innerHTML = `<div class="empty"><div class="big-emoji">🤔</div>Test uchun kamida 4 ta so'z kerak</div>`; return; }
+  let w; do { w = pickWeighted(p); } while (Q.cur && p.length > 1 && w.id === Q.cur.id);
+  Q.cur = w; Q.done = false;
+  const top = `<div class="counter">Ketma-ket to'g'ri: ${Q.streak} 🔥</div>`;
+
+  if (Q.mode === "type"){
+    area.innerHTML = `${top}<p class="muted" style="text-align:center">Inglizcha yozing:</p>
+      <div class="q-word">${esc(w.uz)}</div>
+      <input class="field" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Javobingiz..."/>
+      <div class="feedback" id="fb"></div>
+      <div class="row" style="margin-top:10px"><button class="btn ghost" onclick="reveal()">Ko'rsatish</button><button class="btn" id="go">Tekshirish</button></div>`;
+    const inp = document.getElementById("ans");
+    const check = () => {
+      if (Q.done) return nextQ();
+      if (!inp.value.trim()) return;
+      const ok = norm(inp.value) === norm(w.en) || norm(inp.value) === norm(w.en.replace(/^to /,""));
+      finish(ok, ok ? "To'g'ri! ✓" : `Noto'g'ri. To'g'ri javob: ${w.en}`);
+      document.getElementById("go").textContent = "Keyingisi →";
+    };
+    document.getElementById("go").onclick = check;
+    inp.onkeydown = e => { if (e.key === "Enter") check(); };
+    inp.focus();
+    return;
+  }
+
+  const showEn = Q.mode === "en" || Q.mode === "listen";
+  const others = shuffle(p.filter(x => x.id !== w.id && x.uz !== w.uz && x.en !== w.en)).slice(0,3);
+  const opts = shuffle([w, ...others]);
+  const prompt = Q.mode === "listen"
+    ? `<p class="muted" style="text-align:center">Tinglang va tarjimasini tanlang:</p>
+       <div style="text-align:center;margin:10px 0"><button class="icon-btn" style="width:72px;height:72px;border-radius:50%;font-size:1.8rem" onclick='speak(${JSON.stringify(w.en)})'>🔊</button></div>`
+    : `<p class="muted" style="text-align:center">${showEn ? "Tarjimasini tanlang:" : "Inglizchasini tanlang:"}</p>
+       <div class="q-word">${esc(showEn ? w.en : w.uz)}</div>`;
+  area.innerHTML = `${top}${prompt}
+    <div class="opts">${opts.map(o => `<button class="opt" data-id="${esc(o.id)}">${esc(showEn ? o.uz : o.en)}</button>`).join("")}</div>
+    <div class="feedback" id="fb"></div>
+    <button class="btn" id="go" style="margin-top:10px;display:none" onclick="nextQ()">Keyingisi →</button>`;
+  area.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    if (Q.done) return;
+    const ok = b.dataset.id === w.id;
+    area.querySelectorAll(".opt").forEach(x => { if (x.dataset.id === w.id) x.classList.add("right"); });
+    if (!ok) b.classList.add("wrong");
+    finish(ok, ok ? "To'g'ri! ✓" : `Noto'g'ri. ${w.en} — ${w.uz}`);
+    document.getElementById("go").style.display = "flex";
+  });
+  if (Q.mode === "listen") setTimeout(() => speak(w.en), 200);
+}
+const norm = s => s.toLowerCase().trim().replace(/[^a-z' ]/g,"").replace(/\s+/g," ");
+function finish(ok, msg){
+  Q.done = true; mark(Q.cur, ok);
+  Q.streak = ok ? Q.streak + 1 : 0;
+  const fb = document.getElementById("fb"); fb.textContent = msg; fb.className = "feedback " + (ok ? "ok" : "bad");
+  if (Q.mode !== "listen" || !ok) speak(Q.cur.en);
+}
+function reveal(){
+  if (Q.done) return;
+  finish(false, `Javob: ${Q.cur.en}`);
+  document.getElementById("go").textContent = "Keyingisi →";
+}
+
+/* ---------- Word list ---------- */
+function addWord(){
+  const en = document.getElementById("add-en").value.trim();
+  const uz = document.getElementById("add-uz").value.trim();
+  const ex = document.getElementById("add-ex").value.trim();
+  if (!en || !uz) return toast("Ikkala maydonni to'ldiring");
+  if (allWords().some(w => w.en.toLowerCase() === en.toLowerCase())) return toast("Bu so'z allaqachon bor");
+  S.custom.push({id:"c:"+Date.now(), en, uz, ex});
+  save();
+  ["add-en","add-uz","add-ex"].forEach(id => document.getElementById(id).value = "");
+  toast("So'z qo'shildi ✓"); renderList();
+}
+function delWord(id){
+  S.custom = S.custom.filter(w => w.id !== id); delete S.prog[id]; save(); renderList();
+}
+function renderList(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const list = allWords().filter(w => !q || w.en.toLowerCase().includes(q) || w.uz.toLowerCase().includes(q));
+  const el = document.getElementById("word-list");
+  if (!list.length){ el.innerHTML = `<div class="empty">Hech narsa topilmadi</div>`; return; }
+  el.innerHTML = list.map(w => {
+    const l = lvl(w.id);
+    return `<div class="w-item">
+      <button class="icon-btn" onclick='speak(${JSON.stringify(w.en)})'>🔊</button>
+      <div class="t"><b>${esc(w.en)}</b><span class="muted">${esc(w.uz)}</span></div>
+      <span class="lvl ${l>=3?"l3":""}">${l>=3?"✓ O'rganildi":esc(w.cat)}</span>
+      ${w.id.startsWith("c:") ? `<button class="icon-btn" onclick="delWord('${w.id}')">🗑</button>` : ""}
+    </div>`;
+  }).join("");
+}
+function resetProgress(){
+  if (!confirm("Barcha natijalar o'chiriladi. Davom etasizmi?")) return;
+  S.prog = {}; S.right = 0; S.total = 0; S.today = 0; S.streak = 0; S.lastDay = "";
+  save(); toast("Natijalar tozalandi"); renderList(); renderHome();
+}
+
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => {};
+renderHome();
+</script>
+</body>
+</html>
