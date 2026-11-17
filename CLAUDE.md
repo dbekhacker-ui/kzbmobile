@@ -38,9 +38,10 @@ JSON files are **fractions of the frame**: x from the screen's left edge, y from
 
 1. **Keep my audio exactly as it is.** Copy the original audio stream (`-c:a copy`);
    never re-encode, resample, trim, or mix it. `VideoWriter(..., audio_from=clip)` does this.
-   Exception, only when I ask for it (as in `/float-ui`): sound effects may be *added* under
-   my voice (my samples stay unchanged, just summed), and a separate cleaned-voice copy may be
-   made with `voice.py` (classic EQ/denoise/compression/loudness, never an AI voice).
+   Exception, only when I ask for it (as in `/float-ui`): sound effects may be added under
+   my voice, my voice may be cleaned with `voice.py` (classic EQ/denoise/compression/loudness,
+   never an AI voice), and pauses where I lost my words may be cut out (then the frame count
+   drops by exactly the cut frames, picture and sound cut together).
 2. **Keep the size, frame rate and frame count** of the clip. Decode with
    `common.read_frames` (one array per source frame, rotation applied) and write with
    `common.VideoWriter` at `probe(clip)["rate"]`. Check the output with
@@ -71,10 +72,12 @@ JSON files are **fractions of the frame**: x from the screen's left edge, y from
 
 - `/text-behind WORD` (skill in `.claude/skills/text-behind`) makes `text-behind.mp4` with
   `text_behind.py`: the big word behind me, captions from `<name>_plan.json`, zooms.
-- `/float-ui PILL TEXT` (skill in `.claude/skills/float-ui`) makes `float-ui.mp4` and
-  `float-ui-clear-voice.mp4` with `float_ui.py`: frosted-glass windows (profile behind my
-  head, terminal and notification pill in front), small captions, zooms, sound effects,
-  end question.
+- `/float-ui PILL TEXT` (skill in `.claude/skills/float-ui`) makes `float-ui.mp4` with
+  `float_ui.py`: frosted-glass windows (profile with the real KZB logo and 3 real reels
+  behind my head, terminal and notification pill in front), small captions, zooms, sound
+  effects, end question, my stumbles cut out, cleaned voice only (one version).
+- Brand assets in `assets/`: `kzb_logo_round.png` (real logo) and reel tiles cropped from my
+  Instagram screenshots.
 - `transcribe.py` cuts the speech into ~8 s chunks; don't give it a `--prompt` with names
   (Whisper starts repeating them).
 - Several clips in this folder: always pass the clip path to every script.

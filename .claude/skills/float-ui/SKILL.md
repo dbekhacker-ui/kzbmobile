@@ -6,8 +6,8 @@ argument-hint: "PILL TEXT (e.g. iPhone 13 pro 128GB 77%)"
 
 # /float-ui [PILL TEXT]
 
-Make `float-ui.mp4` (my original voice + sound effects) and `float-ui-clear-voice.mp4`
-(cleaned voice + sound effects) from the clip in this folder with `float_ui.py`. Follow
+Make `float-ui.mp4` (my voice cleaned up by `voice.py` + sound effects; one version only)
+from the clip in this folder with `float_ui.py`. Follow
 `CLAUDE.md`:
 - same size, fps and frame count;
 - put me back with `put_back.py`;
@@ -15,9 +15,8 @@ Make `float-ui.mp4` (my original voice + sound effects) and `float-ui-clear-voic
 - nothing touches my face box;
 - left/right as seen on screen.
 
-Mixing in sound effects and making the clean-voice copy are part of this effect, by my
-request. In `float-ui.mp4` my voice samples stay exactly as recorded and are only summed
-with the effects. Talk to me in the language I write in (usually Uzbek).
+Mixing in sound effects, cleaning the voice and cutting out my stumbles are part of this
+effect, by my request. Talk to me in the language I write in (usually Uzbek).
 
 The notification pill text is `$ARGUMENTS`, exactly as I typed it. If I gave none, ask me.
 
@@ -44,7 +43,11 @@ The notification pill text is `$ARGUMENTS`, exactly as I typed it. If I gave non
   - `profile.t_in`: ~0.3 s after the pill.
   - `terminal.t_in`: ~0.3 s after the profile.
   - `pill.pulse`: the times I say the numbers that are in the pill.
-  - `profile.thumbs`: 6 moments where the phone is clearly visible.
+  - `profile.logo`: `assets/kzb_logo_round.png` (the real KZB Mobile logo, round).
+  - `profile.tiles`: 3 real reels from my Instagram profile, cropped from my screenshots
+    (`assets/tile*.png`, view counts kept), ordered by views so the strongest comes last.
+    Each tile appears at its `t`: the first ~0.6 s after the window, then spread across the
+    video (the last one just before the call to action).
   - `terminal.lines`: `$ kzb scan iphone` right after the pop-in, then
     `["@progress qidiruv", t0, t1]` running until I name the model, then
     `key(9 chars) value` lines exactly when I say each spec. Only facts I actually said.
@@ -58,6 +61,12 @@ The notification pill text is `$ARGUMENTS`, exactly as I typed it. If I gave non
 - `question`: a short, honest question that makes people comment, about the product in
   the video ("iPhone 13 Pro hali ham arziydimi?" with "Fikringizni izohda yozing"). Start
   it ~2 s before the end, after the windows have left. No emoji, no hype.
+- `cuts`: [[start, end], ...] in clip seconds for pauses where I lost my words. Find them
+  from 50 ms loudness (−45 dB or quieter for 0.3 s+) inside a sentence. Transcribe the pieces
+  before and after separately to make sure no word is repeated (if one is, cut the repeat
+  too). Leave ~0.15 s of the pause. Whole frames are dropped, with a 15 ms audio crossfade.
+- `cut_zoom`: one [jump-to, settle-to] per cut, alternating in and out
+  (e.g. [1.11, 1.06] then [1.0, 1.02]), so each jump cut reads as an intended edit.
 - `zoom`: a slow push after the hook, a 0.2 s punch (1.10–1.16) on each hit, the deepest
   (≤1.16) on the model name, easing back, and 1.0 at the very end.
 
@@ -72,14 +81,14 @@ The notification pill text is `$ARGUMENTS`, exactly as I typed it. If I gave non
   - nothing hides the phone for long;
   - text stays out of Instagram's bottom ~15% and right-edge button column;
   - no letters or room show through my hands, neck or phone, and no halo in my hair.
-- Do the full render without `--start`/`--seconds`. It writes both audio versions.
+- Do the full render without `--start`/`--seconds`; `--progress logs/progress.json` reports
+  frames done and speed.
 
 ## 4. Checks before sending
 
-- Both files: frame count, size and fps equal to the clip.
-- `float-ui.mp4`: the voice is my original audio plus effects only.
-- `float-ui-clear-voice.mp4`: ~-14 LUFS, true peak ≤ -1 dB
-  (`ffmpeg -af ebur128=peak=true`).
+- Size and fps equal to the clip; frame count = clip frames − cut frames.
+- ~-14 LUFS, true peak ≤ -1 dB (`ffmpeg -af ebur128=peak=true`).
+- Look at the frames just before and after every cut.
 - Effects sit about 9–12 dB under the voice; the hook ~5 dB under. They must never be
   louder than my voice.
 - Tell me which caption words you guessed. Tell me plainly that you can't listen to the

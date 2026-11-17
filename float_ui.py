@@ -15,9 +15,11 @@ the face box and pushed away if needed.
 Then the small captions of what I say (same style as text_behind.py), punch-in
 zooms, a minimal end question, and sound effects under my voice.
 
-Outputs (from <name>_plan.json):
-  float-ui.mp4              my original voice, untouched, + sound effects
-  float-ui-clear-voice.mp4  my voice cleaned up by voice.py + sound effects
+Cuts: "cuts" in the plan drops whole frames (picture and sound together), with
+a 15 ms audio crossfade and a zoom jump on each cut ("cut_zoom") so it reads as an edit.
+
+Output (from <name>_plan.json):
+  float-ui.mp4   my voice cleaned up by voice.py (no AI) + sound effects
 
 usage: .venv/bin/python float_ui.py [clip] --plan 13_plan.json [--start S --seconds N]
 """
@@ -197,12 +199,19 @@ def rgba_to_np(im):
 
 
 class ProfilePanel(Panel):
-    def __init__(self, cfg, thumbs, t_out):
-        super().__init__(440, 560, 30, -3.0, cfg["t_in"], t_out, 6, 3.4, 0.0, front=False)
-        im = Image.new("RGBA", (440 * SS, 560 * SS), (0, 0, 0, 0))
-        d = ImageDraw.Draw(im)
+    """KZB profile window: the real round logo in a story ring, name, buttons,
+    and one row of 3 real reel tiles from the Instagram profile (with their
+    view counts) that appear one by one: soft fade, a little scale, blur to sharp."""
+    GX, GY, GAP = 22, 264, 6
+    REVEAL = 0.65
+
+    def __init__(self, cfg, t_out):
+        tw = (440 - 2 * self.GX - 2 * self.GAP) / 3
+        th = tw * 4 / 3
+        h = int(self.GY + th + 22)
+        super().__init__(440, h, 30, -3.0, cfg["t_in"], t_out, 6, 3.4, 0.0, front=False)
         S = SS
-        # soft top highlight
+        im = Image.new("RGBA", (440 * S, h * S), (0, 0, 0, 0))
         grad = np.linspace(22, 0, 140 * S)[:, None] * np.ones((1, 440 * S))
         top = np.zeros((140 * S, 440 * S, 4), np.uint8)
         top[..., :3] = 255
@@ -213,48 +222,75 @@ class ProfilePanel(Panel):
         for k in range(3):
             d.ellipse(((392 + k * 10) * S, 32 * S, (396 + k * 10) * S, 36 * S), fill=(255, 255, 255, 220))
         d.line((0, 64 * S, 440 * S, 64 * S), fill=(255, 255, 255, 40), width=S)
-        # avatar with gradient ring
-        ax, ay, ar = 72, 128, 46
-        ring = Image.new("RGBA", (2 * ar * S, 2 * ar * S))
-        g = np.zeros((2 * ar * S, 2 * ar * S, 4), np.uint8)
-        yy, xx = np.mgrid[0:2 * ar * S, 0:2 * ar * S]
-        tpos = ((xx + (2 * ar * S - yy)) / (4 * ar * S))[..., None]
+        # avatar: the real KZB logo inside a story-style gradient ring
+        ax, ay, ar = 72, 128, 48
+        D = 2 * ar * S
+        g = np.zeros((D, D, 4), np.uint8)
+        yy, xx = np.mgrid[0:D, 0:D]
+        tpos = ((xx + (D - yy)) / (2 * D))[..., None]
         c0, c1, c2 = np.array([254, 218, 117]), np.array([214, 41, 118]), np.array([150, 47, 191])
-        col = np.where(tpos < 0.5, c0 + (c1 - c0) * (tpos / 0.5), c1 + (c2 - c1) * ((tpos - 0.5) / 0.5))
-        g[..., :3] = col.astype(np.uint8)
-        mask = Image.new("L", (2 * ar * S, 2 * ar * S), 0)
-        ImageDraw.Draw(mask).ellipse((0, 0, 2 * ar * S - 1, 2 * ar * S - 1), fill=255)
-        ImageDraw.Draw(mask).ellipse((5 * S, 5 * S, (2 * ar - 5) * S, (2 * ar - 5) * S), fill=0)
-        g[..., 3] = np.asarray(mask)
+        g[..., :3] = np.where(tpos < 0.5, c0 + (c1 - c0) * (tpos / 0.5), c1 + (c2 - c1) * ((tpos - 0.5) / 0.5)).astype(np.uint8)
+        ring = Image.new("L", (D * 4, D * 4), 0)
+        ImageDraw.Draw(ring).ellipse((0, 0, D * 4 - 1, D * 4 - 1), fill=255)
+        ImageDraw.Draw(ring).ellipse((5 * S * 4, 5 * S * 4, D * 4 - 5 * S * 4, D * 4 - 5 * S * 4), fill=0)
+        g[..., 3] = np.asarray(ring.resize((D, D), Image.LANCZOS))
         im.alpha_composite(Image.fromarray(g), ((ax - ar) * S, (ay - ar) * S))
+        inner = D - 2 * 8 * S
+        logo = Image.open(os.path.join(HERE, cfg["logo"])).convert("RGBA").resize((inner, inner), Image.LANCZOS)
+        im.alpha_composite(logo, ((ax - ar + 8) * S, (ay - ar + 8) * S))
         d = ImageDraw.Draw(im)
-        d.ellipse(((ax - ar + 8) * S, (ay - ar + 8) * S, (ax + ar - 8) * S, (ay + ar - 8) * S), fill=(18, 20, 28, 255))
-        d.text((ax * S, ay * S), "KZB", font=F("Inter-Bold.otf", 22), fill=(255, 255, 255, 255), anchor="mm")
-        d.text((140 * S, 104 * S), cfg["name"], font=F("Inter-SemiBold.otf", 25), fill=(255, 255, 255, 255))
-        d.text((140 * S, 140 * S), cfg["bio"], font=F("Inter-Regular.otf", 18), fill=(205, 208, 215, 255))
-        # buttons
+        d.text((142 * S, 104 * S), cfg["name"], font=F("Inter-SemiBold.otf", 25), fill=(255, 255, 255, 255))
+        d.text((142 * S, 140 * S), cfg["bio"], font=F("Inter-Regular.otf", 18), fill=(205, 208, 215, 255))
         bw, bh, by = 190, 46, 196
         d.rounded_rectangle((22 * S, by * S, (22 + bw) * S, (by + bh) * S), 12 * S, fill=(0, 149, 246, 255))
         d.text(((22 + bw / 2) * S, (by + bh / 2) * S), cfg["follow"], font=F("Inter-SemiBold.otf", 18),
                fill=(255, 255, 255, 255), anchor="mm")
-        d.rounded_rectangle(((228) * S, by * S, (228 + bw) * S, (by + bh) * S), 12 * S, fill=(255, 255, 255, 36))
+        d.rounded_rectangle((228 * S, by * S, (228 + bw) * S, (by + bh) * S), 12 * S, fill=(255, 255, 255, 36))
         d.text(((228 + bw / 2) * S, (by + bh / 2) * S), cfg["message"], font=F("Inter-SemiBold.otf", 18),
                fill=(255, 255, 255, 255), anchor="mm")
-        # 3x2 grid of real frames from the clip
-        gx, gy, gap = 22, 264, 6
-        tw = (440 - 2 * gx - 2 * gap) / 3
-        for k, th in enumerate(thumbs[:6]):
-            r, c = divmod(k, 3)
-            x0, y0 = gx + c * (tw + gap), gy + r * (tw * 1.3 + gap)
-            tile = Image.fromarray(th).resize((int(tw * S), int(tw * 1.3 * S)), Image.LANCZOS).convert("RGBA")
-            tm = Image.new("L", tile.size, 0)
-            ImageDraw.Draw(tm).rounded_rectangle((0, 0, tile.size[0] - 1, tile.size[1] - 1), 8 * S, fill=255)
-            tile.putalpha(tm)
-            im.alpha_composite(tile, (int(x0 * S), int(y0 * S)))
-        self.static = rgba_to_np(im)
+        # empty slots (shown until each reel appears)
+        self.slots = []
+        for k in range(3):
+            x0 = self.GX + k * (tw + self.GAP)
+            self.slots.append((x0, self.GY, tw, th))
+            d.rounded_rectangle((x0 * S, self.GY * S, (x0 + tw) * S, (self.GY + th) * S), 8 * S, fill=(255, 255, 255, 18))
+        self.base = im
+        # the real tiles, rounded, at slot size
+        self.tiles = []
+        for k, tcfg in enumerate(cfg["tiles"][:3]):
+            src = Image.open(os.path.join(HERE, tcfg["img"])).convert("RGB")
+            tile = src.resize((int(tw * S), int(th * S)), Image.LANCZOS).convert("RGBA")
+            m = Image.new("L", tile.size, 0)
+            ImageDraw.Draw(m).rounded_rectangle((0, 0, tile.size[0] - 1, tile.size[1] - 1), 8 * S, fill=255)
+            tile.putalpha(m)
+            self.tiles.append((tile, float(tcfg["t"])))
+
+    def reveal_times(self):
+        return [t for _, t in self.tiles]
 
     def content(self, t):
-        return self.static
+        prog = tuple(int(round(np.clip((t - tt) / self.REVEAL, 0, 1) * 30)) for _, tt in self.tiles)
+        if prog in self._content_cache:
+            return self._content_cache[prog]
+        from PIL import ImageFilter
+        im = self.base.copy()
+        S = SS
+        for (tile, _), q, (x0, y0, tw, th) in zip(self.tiles, prog, self.slots):
+            if q == 0:
+                continue
+            e = float(tb.ease_out_cubic(q / 30))
+            sc = 0.93 + 0.07 * e
+            w2, h2 = max(2, int(tile.size[0] * sc)), max(2, int(tile.size[1] * sc))
+            tt = tile.resize((w2, h2), Image.LANCZOS)
+            if e < 0.999:
+                tt = tt.filter(ImageFilter.GaussianBlur(float((1 - e) * 5 * S)))
+                al = np.asarray(tt.getchannel("A"), np.float32) * e
+                tt.putalpha(Image.fromarray(al.astype(np.uint8)))
+            cx, cy = (x0 + tw / 2) * S, (y0 + th / 2) * S
+            im.alpha_composite(tt, (int(cx - w2 / 2), int(cy - h2 / 2)))
+        arr = rgba_to_np(im)
+        self._content_cache[prog] = arr
+        return arr
 
 
 class TerminalPanel(Panel):
@@ -433,28 +469,6 @@ def place(panel, t, face, W, H, mode, anchor):
     return M, op
 
 
-def grab_thumbs(clip, info, times):
-    """Real frames from the clip, cropped around the phone (product shots)."""
-    from common import read_frames
-    W, H = info["width"], info["height"]
-    phone_path = stem(clip) + "_phone.mp4"
-    out = []
-    for t in times:
-        f = next(read_frames(clip, W, H, start=t, seconds=0.05))
-        cx, cy, ch = W / 2, H * 0.55, W * 0.8 * 1.3
-        if os.path.exists(phone_path):
-            pm = next(read_frames(phone_path, W, H, pix="gray", start=t, seconds=0.05))
-            ys, xs = np.nonzero(pm > 127)
-            if len(ys) > 500:
-                cx, cy = xs.mean(), ys.mean()
-                ch = float(np.clip((ys.max() - ys.min()) * 1.9, 420, 900))
-        cw = ch / 1.3
-        x0 = int(np.clip(cx - cw / 2, 0, W - cw))
-        y0 = int(np.clip(cy - ch / 2, 0, H - ch))
-        out.append(np.ascontiguousarray(f[y0:y0 + int(ch), x0:x0 + int(cw)]))
-    return out
-
-
 # ------------------------------------------------------------------ audio --
 def read_pcm(path):
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-vn", "-ac", "2", "-ar", str(sfx.SR),
@@ -467,6 +481,7 @@ def sfx_events(plan, term):
     ev = [("hook", plan["hook_t"], -5.0)]
     ev += [("pop", w["pill"]["t_in"], -9.0, -0.4), ("ding", w["pill"]["t_in"] + 0.06, -12.0, -0.4)]
     ev += [("pop", w["profile"]["t_in"], -10.0, -0.5)]
+    ev += [("pop", t["t"], -16.0, -0.5) for t in w["profile"].get("tiles", [])[1:]]
     ev += [("pop", w["terminal"]["t_in"], -10.0, 0.5)]
     ev += [("tick", t, -21.0, 0.45) for t in term.char_times()]
     keys = plan.get("zoom", [])
@@ -498,55 +513,144 @@ def mix_and_mux(video_only, voice, sfx_track, out, limit=True):
         os.unlink(raw)
 
 
+# ------------------------------------------------------------- cuts --
+def cut_frames(plan, fps, total):
+    """Source frames to drop (whole frames, so picture and sound stay in sync)."""
+    ranges = []
+    for a0, a1 in plan.get("cuts", []):
+        r0, r1 = int(round(a0 * fps)), int(round(a1 * fps))
+        if r1 > r0:
+            ranges.append((r0, min(r1, total)))
+    removed = set(i for r0, r1 in ranges for i in range(r0, r1))
+    keep = [i for i in range(total) if i not in removed]
+    return ranges, keep
+
+
+def make_s2o(ranges, fps):
+    secs = [(r0 / fps, r1 / fps) for r0, r1 in ranges]
+
+    def s2o(t):
+        return t - sum(min(max(t - a0, 0.0), a1 - a0) for a0, a1 in secs)
+    return s2o
+
+
+def remap_plan(plan, s2o, ranges, fps):
+    """Plan times are written in the clip's own time; move them to the cut timeline,
+    and add a zoom jump on every cut so the jump cut reads as an intended edit."""
+    import copy
+    p = copy.deepcopy(plan)
+    p["hook_t"] = s2o(p["hook_t"])
+    w = p["windows"]
+    for k in ("pill", "profile", "terminal"):
+        w[k]["t_in"] = s2o(w[k]["t_in"])
+    w["t_out"] = s2o(w["t_out"])
+    w["pill"]["pulse"] = [s2o(t) for t in w["pill"].get("pulse", [])]
+    for tile in w["profile"].get("tiles", []):
+        tile["t"] = s2o(tile["t"])
+    w["terminal"]["lines"] = [[ln[0]] + [s2o(x) for x in ln[1:]] for ln in w["terminal"]["lines"]]
+    for bt in p["beats"]:
+        for k in ("t", "sub_t", "end"):
+            if k in bt:
+                bt[k] = s2o(bt[k])
+        if "words" in bt:
+            bt["words"] = [[wd, s2o(t)] for wd, t in bt["words"]]
+    if p.get("question"):
+        p["question"]["t"] = s2o(p["question"]["t"])
+    keys = sorted([[s2o(t), z] for t, z in p["zoom"]])
+    for (r0, r1), (za, zb) in zip(ranges, p.get("cut_zoom", [])):
+        tc = s2o(r1 / fps)                     # first frame after the cut
+        zprev = tb.zoom_at(keys, tc - 1 / fps)
+        keys = [k for k in keys if not (tc - 0.06 <= k[0] <= tc + 1.35)]
+        keys += [[tc - 0.002, zprev], [tc, za], [tc + 1.3, zb]]
+        keys.sort()
+    p["zoom"] = keys
+    return p
+
+
+def cut_audio(x, ranges, spf, n_out, xfade=0.015):
+    """Drop the cut frames' samples; overlap-add a short equal-power crossfade at
+    every join (using samples from just inside the cut), so there is no click and
+    the length stays exactly n_out = kept frames x samples per frame."""
+    need = (max((r1 for _, r1 in ranges), default=0) + 1) * spf
+    if len(x) < need:
+        x = np.pad(x, ((0, need - len(x)), (0, 0)))
+    pieces, joins, prev = [], [], 0
+    for r0, r1 in ranges:
+        pieces.append(x[prev * spf:r0 * spf])
+        joins.append((sum(len(q) for q in pieces), r0 * spf, r1 * spf))
+        prev = r1
+    pieces.append(x[prev * spf:])
+    y = np.concatenate(pieces)
+    h = int(xfade * sfx.SR / 2)
+    th = np.linspace(0, np.pi / 2, 2 * h)[:, None]
+    fo, fi = np.cos(th), np.sin(th)
+    for j, a_end, b_start in joins:
+        if j - h < 0 or j + h > len(y):
+            continue
+        y[j - h:j + h] = x[a_end - h:a_end + h] * fo + x[b_start - h:b_start + h] * fi
+    if len(y) < n_out:
+        y = np.pad(y, ((0, n_out - len(y)), (0, 0)))
+    return y[:n_out]
+
+
 # ------------------------------------------------------------------- main --
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("clip", nargs="?")
     ap.add_argument("--plan", required=True)
-    ap.add_argument("--start", type=float)
-    ap.add_argument("--seconds", type=float)
+    ap.add_argument("--start", type=float, help="tests: start here (clip time)")
+    ap.add_argument("--seconds", type=float, help="tests: this many seconds of the clip")
     ap.add_argument("--out", default=os.path.join(HERE, "float-ui.mp4"))
-    ap.add_argument("--out-clear", default=os.path.join(HERE, "float-ui-clear-voice.mp4"))
     ap.add_argument("--video-only", action="store_true", help="tests: skip the audio versions")
     ap.add_argument("--audio-only", action="store_true",
                     help="reuse an already rendered <out>.video.mp4 and only build the two audio versions")
+    ap.add_argument("--progress", help="write render progress JSON here (frames done/total, fps)")
     a = ap.parse_args()
     clip = find_clip(a.clip)
     info = probe(clip)
     W, H, fps = info["width"], info["height"], float(info["fps"])
     total = count_frames(clip)
-    plan = json.load(open(a.plan))
+    src_plan = json.load(open(a.plan))
+    ranges, keep = cut_frames(src_plan, fps, total)
+    pos = {src: k for k, src in enumerate(keep)}
+    s2o = make_s2o(ranges, fps)
+    plan = remap_plan(src_plan, s2o, ranges, fps)
     wcfg = plan["windows"]
     beats, zkeys = plan["beats"], plan["zoom"]
 
     face = json.load(open(stem(clip) + "_face.json"))["frames"]
-    fxs = np.array([f["x"] if f["x"] is not None else 0.4 for f in face]) * W
-    fys = np.array([f["y"] if f["y"] is not None else 0.3 for f in face]) * H
-    fws = np.array([f["w"] if f["w"] is not None else 0.25 for f in face]) * W
-    fhs = np.array([f["h"] if f["h"] is not None else 0.15 for f in face]) * H
+    kf = [face[min(i, len(face) - 1)] for i in keep]          # face per OUTPUT frame
+    fxs = np.array([f["x"] if f["x"] is not None else 0.4 for f in kf]) * W
+    fys = np.array([f["y"] if f["y"] is not None else 0.3 for f in kf]) * H
+    fws = np.array([f["w"] if f["w"] is not None else 0.25 for f in kf]) * W
+    fhs = np.array([f["h"] if f["h"] is not None else 0.15 for f in kf]) * H
+    # smoothed in OUTPUT order, so windows glide across a cut instead of jumping
     ax = tb.smooth_series(fxs + fws / 2, 0.6 * fps)
     ay = tb.smooth_series(fys + fhs / 2 + 0.10 * H, 0.6 * fps)
-    # the profile window follows my head (a bit smoothed, so it glides)
     hx0 = tb.smooth_series(fxs, 0.25 * fps)
     hy0 = tb.smooth_series(fys, 0.5 * fps)
     hw = tb.smooth_series(fws, 0.5 * fps)
 
     t_out = wcfg.get("t_out")
-    thumbs = grab_thumbs(clip, info, wcfg["profile"]["thumbs"])
-    profile = ProfilePanel(wcfg["profile"], thumbs, t_out + 0.09)
+    profile = ProfilePanel(wcfg["profile"], t_out + 0.09)
     term = TerminalPanel(wcfg["terminal"], t_out)
     pill = PillPanel(wcfg["pill"], t_out + 0.18)
     question = QuestionCard(plan["question"], W) if plan.get("question") else None
 
     tmp_video = os.path.splitext(a.out)[0] + ".video.mp4"
     if a.audio_only:
-        return build_audio(a, clip, plan, term, tmp_video)
-    wr = VideoWriter(tmp_video, W, H, info["rate"], seconds=a.seconds, start=a.start)
+        return build_audio(a, clip, src_plan, plan, term, tmp_video, ranges, keep)
+    wr = VideoWriter(tmp_video, W, H, info["rate"])
+    import time
+    t_start = time.time()
     for layer in PutBack(clip, seconds=a.seconds, start=a.start):
-        t, i = layer.t, min(layer.i, len(face) - 1)
+        if layer.i not in pos:
+            continue                              # this frame was cut out
+        o = pos[layer.i]
+        t = o / fps
         # 1) zoom the room and me together
         z = tb.zoom_at(zkeys, t)
-        cx, cy = float(ax[i]), float(ay[i])
+        cx, cy = float(ax[o]), float(ay[o])
         room, alpha, fg = layer.frame, layer.alpha, layer.fg
         if z > 1.0005:
             M = np.float32([[z, 0, cx * (1 - z)], [0, z, cy * (1 - z)]])
@@ -555,11 +659,11 @@ def main():
             alpha = np.clip(warp(alpha, cv2.INTER_LINEAR), 0, 1)
         Z = lambda x, c: c + (x - c) * z
         fbox = None
-        if face[i]["x"] is not None:
-            fbox = (Z(fxs[i], cx), Z(fys[i], cy), Z(fxs[i] + fws[i], cx), Z(fys[i] + fhs[i], cy))
+        if kf[o]["x"] is not None:
+            fbox = (Z(fxs[o], cx), Z(fys[o], cy), Z(fxs[o] + fws[o], cx), Z(fys[o] + fhs[o], cy))
         # 2) the profile window goes BEHIND me (frost = blur of the room only)
         scene = room.astype(np.float32)
-        M, op = place(profile, t, fbox, W, H, "profile", (Z(hx0[i], cx), Z(hy0[i], cy), hw[i] * z))
+        M, op = place(profile, t, fbox, W, H, "profile", (Z(hx0[o], cx), Z(hy0[o], cy), hw[o] * z))
         if M is not None:
             draw_glass(scene, profile, M, op, blur_room_only(room, alpha, 16), t, shadow=False)
         # 3) me on top
@@ -584,35 +688,35 @@ def main():
                 base = scene.copy()
                 draw_glass(scene, question, M, op, blur_plain(base, 14), t)
         wr.write(np.clip(scene + 0.5, 0, 255).astype(np.uint8))
-        if wr.count % 100 == 0:
-            print(f"  {wr.count}/{total} frames")
+        if wr.count % 30 == 0:
+            el = time.time() - t_start
+            if a.progress:
+                json.dump({"done": wr.count, "total": len(keep), "fps": wr.count / el}, open(a.progress, "w"))
+            if wr.count % 100 == 0:
+                print(f"  {wr.count}/{len(keep)} frames")
     wr.close()
     n = count_frames(tmp_video)
-    print(f"video: {n} frames" + ("" if (a.seconds or a.start) else f" (clip has {total})"))
+    print(f"video: {n} frames" + ("" if (a.seconds or a.start) else f" (clip {total} - cut {total - len(keep)} = {len(keep)})"))
     if a.video_only:
         os.replace(tmp_video, a.out)
         print("wrote", a.out, "(no audio, test)")
         return
+    build_audio(a, clip, src_plan, plan, term, tmp_video, ranges, keep)
 
-    build_audio(a, clip, plan, term, tmp_video)
 
-
-def build_audio(a, clip, plan, term, tmp_video):
-    """Two audio versions, both with the same sound effects, muxed onto the video."""
+def build_audio(a, clip, src_plan, plan, term, tmp_video, ranges, keep):
+    """The final audio: my voice cleaned by voice.py, cut exactly like the picture,
+    with the sound effects under it."""
+    fps = float(probe(clip)["fps"])
+    spf = int(round(sfx.SR / fps))
+    n_out = len(keep) * spf
     words = json.load(open(stem(clip) + "_words.json"))["words"]
-    orig = read_pcm(clip)
-    events = sfx_events(plan, term)
-    fx_orig = sfx.render(events, len(orig), sfx.speech_rms(orig, words))
-    mix_and_mux(tmp_video, orig, fx_orig, a.out)
-    print("wrote", a.out, "(original voice + effects)")
     import voice as vmod
     clean, _ = vmod.enhance(clip)
-    clean = clean[:len(orig)]
-    if len(clean) < len(orig):
-        clean = np.pad(clean, ((0, len(orig) - len(clean)), (0, 0)))
-    fx_clean = sfx.render(events, len(orig), sfx.speech_rms(clean, words))
-    mix_and_mux(tmp_video, clean, fx_clean, a.out_clear)
-    print("wrote", a.out_clear, "(cleaned voice + effects)")
+    events = sfx_events(plan, term)
+    voice_c = cut_audio(clean, ranges, spf, n_out)
+    mix_and_mux(tmp_video, voice_c, sfx.render(events, n_out, sfx.speech_rms(clean, words)), a.out)
+    print("wrote", a.out, "(cleaned voice + effects)")
     os.remove(tmp_video)
 
 

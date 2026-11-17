@@ -17,13 +17,20 @@
    "bio": "Telefonlar do'koni",
    "follow": "Obuna bo'lish",
    "message": "Xabar",
-   "thumbs": [
-    5.0,
-    9.0,
-    13.0,
-    19.5,
-    23.5,
-    29.0
+   "logo": "assets/kzb_logo_round.png",
+   "tiles": [
+    {
+     "img": "assets/tile1_6588.png",
+     "t": 2.25
+    },
+    {
+     "img": "assets/tile2_27k.png",
+     "t": 13.75
+    },
+    {
+     "img": "assets/tile3_79k.png",
+     "t": 24.72
+    }
    ]
   },
   "terminal": {
@@ -497,6 +504,26 @@
   [
    36.0,
    1.0
+  ]
+ ],
+ "cuts": [
+  [
+   9.1333,
+   9.6333
+  ],
+  [
+   12.4667,
+   12.8667
+  ]
+ ],
+ "cut_zoom": [
+  [
+   1.11,
+   1.06
+  ],
+  [
+   1.0,
+   1.02
   ]
  ]
 }
