@@ -125,21 +125,31 @@ def refine(frame, raw, hands=None):
     r_close = max(1, int(S * 0.004))
     closed = cv2.morphologyEx(core, cv2.MORPH_CLOSE,
                               cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r_close + 1,) * 2))
-    n, lab, stats, _ = cv2.connectedComponentsWithStats(1 - closed, connectivity=8)
-    fill = np.zeros((h, w), np.uint8)
     max_room_hole = (0.06 * S) ** 2
-    for k in range(1, n):
-        x, y, bw, bh, area = stats[k]
-        if x == 0 or y == 0 or x + bw == w or y + bh == h:
-            continue  # touches the frame edge: that's the room, not a hole
-        comp = lab[y:y + bh, x:x + bw] == k
-        if zone[y:y + bh, x:x + bw][comp].mean() > 0.2:
-            continue  # inside/near a hand: keep gaps between fingers open
-        if area > max_room_hole and m[y:y + bh, x:x + bw][comp].mean() < 0.15:
-            continue  # big and clearly room (e.g. arm on hip): leave it
-        fill[y:y + bh, x:x + bw][comp] = 1
-    if fill.any():  # grow back over what closing ate, but only into the hole
-        fill = cv2.dilate(fill, np.ones((2 * r_close + 3,) * 2, np.uint8)) & (1 - core) & (1 - zone.astype(np.uint8))
+
+    def holes(solid):
+        """Enclosed background components of `solid` that should be made opaque."""
+        n, lab, stats, _ = cv2.connectedComponentsWithStats(1 - solid, connectivity=8)
+        out = np.zeros((h, w), np.uint8)
+        for k in range(1, n):
+            x, y, bw, bh, area = stats[k]
+            if x == 0 or y == 0 or x + bw == w or y + bh == h:
+                continue  # touches the frame edge: that's the room, not a hole
+            comp = lab[y:y + bh, x:x + bw] == k
+            if zone[y:y + bh, x:x + bw][comp].mean() > 0.2:
+                continue  # inside/near a hand: keep gaps between fingers open
+            if area > max_room_hole and m[y:y + bh, x:x + bw][comp].mean() < 0.15:
+                continue  # big and clearly room (e.g. arm on hip): leave it
+            out[y:y + bh, x:x + bw][comp] = 1
+        return out
+
+    # Holes in the raw core (specks), plus holes that only close up once
+    # hairline leaks to the outside are sealed by a small closing.
+    fill = holes(core)
+    sealed = holes(closed)
+    if sealed.any():  # grow back over what closing ate, but only into the hole
+        sealed = cv2.dilate(sealed, np.ones((2 * r_close + 3,) * 2, np.uint8))
+    fill = (fill | sealed) & (1 - core) & (1 - zone.astype(np.uint8))
 
     # --- solid inside, smooth ramp from the edge -------------------------
     solid_region = (core | fill).astype(np.uint8)

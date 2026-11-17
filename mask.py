@@ -5,7 +5,8 @@ count as the clip.
 
   Mac:            Apple Vision VNGeneratePersonSegmentationRequest (.accurate),
                   in a small Swift program compiled once with swiftc.
-  Windows/Linux:  MediaPipe Tasks ImageSegmenter with selfie_segmenter.tflite.
+  Windows/Linux:  MediaPipe Tasks ImageSegmenter: selfie multiclass model on
+                  overlapping square tiles (selfie_segmenter.tflite is also downloaded).
 
 ffmpeg decodes the frames in both cases (so phone rotation is handled) and
 pipes raw RGB into the segmenter.
@@ -19,6 +20,7 @@ import struct
 import subprocess
 import sys
 
+import cv2
 import numpy as np
 from PIL import Image
 
@@ -120,25 +122,58 @@ def apple_vision_masks(clip, info, seconds):
     proc.wait()
 
 
+def tile_starts(long, short):
+    """Square tiles of side `short` covering `long` with overlap."""
+    n = int(np.ceil(long / short))
+    if n == 1:
+        return [0]
+    return [int(round(k * (long - short) / (n - 1))) for k in range(n)]
+
+
 def mediapipe_masks(clip, info, seconds):
+    """MediaPipe selfie segmenter. Uses the multiclass selfie model (much better
+    outlines than the plain one) on overlapping square tiles, so a tall phone
+    frame isn't squashed into one 256x256 square."""
     import mediapipe as mp
     from mediapipe.tasks.python import BaseOptions, vision
 
+    # The plain selfie_segmenter.tflite is kept as a fallback model on disk.
+    model_path("selfie_segmenter.tflite")
     opts = vision.ImageSegmenterOptions(
-        base_options=BaseOptions(model_asset_path=model_path("selfie_segmenter.tflite")),
+        base_options=BaseOptions(model_asset_path=model_path("selfie_multiclass_256x256.tflite")),
         running_mode=vision.RunningMode.VIDEO,
         output_confidence_masks=True, output_category_mask=False)
     w, h = info["width"], info["height"]
     fps = float(info["fps"])
-    with vision.ImageSegmenter.create_from_options(opts) as seg:
+    short, long = min(w, h), max(w, h)
+    starts = tile_starts(long, short)
+    # Tent weights along the long axis so tiles blend smoothly in the overlap.
+    ramp = np.minimum(np.arange(short) + 1, short - np.arange(short)).astype(np.float32)
+    ramp = np.minimum(ramp, short * 0.25)
+    segs = [vision.ImageSegmenter.create_from_options(opts) for _ in starts]  # one per tile (VIDEO mode keeps state)
+    try:
         for i, frame in enumerate(read_frames(clip, w, h, seconds=seconds)):
-            img = mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(frame))
-            res = seg.segment_for_video(img, int(round(i * 1000 / fps)))
-            conf = res.confidence_masks[-1].numpy_view()  # person probability, 0..1
-            conf = np.squeeze(conf).astype(np.float32)
-            if conf.shape != (h, w):
-                conf = np.asarray(Image.fromarray(conf).resize((w, h), Image.BILINEAR))
-            yield np.clip(conf * 255 + 0.5, 0, 255).astype(np.uint8)
+            acc = np.zeros((h, w), np.float32)
+            wsum = np.zeros((h, w), np.float32)
+            for seg, st in zip(segs, starts):
+                tile = frame[st:st + short] if h >= w else frame[:, st:st + short]
+                img = mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(tile))
+                res = seg.segment_for_video(img, int(round(i * 1000 / fps)))
+                bg = np.squeeze(res.confidence_masks[0].numpy_view()).astype(np.float32)
+                person = cv2.resize(1.0 - bg, (short, short), interpolation=cv2.INTER_LINEAR)
+                if h >= w:
+                    acc[st:st + short] += person * ramp[:, None]
+                    wsum[st:st + short] += ramp[:, None]
+                else:
+                    acc[:, st:st + short] += person * ramp[None, :]
+                    wsum[:, st:st + short] += ramp[None, :]
+            p = acc / np.maximum(wsum, 1e-6)
+            # The model never says exactly 0/1 (room ~0.08, me ~0.98): stretch to black/white.
+            p = np.clip((p - 0.10) / 0.85, 0, 1)
+            yield np.clip(p * 255 + 0.5, 0, 255).astype(np.uint8)
+    finally:
+        for seg in segs:
+            seg.close()
 
 
 def main():
@@ -152,7 +187,7 @@ def main():
     out = a.out or stem(clip) + "_mask.mp4"
     gen = apple_vision_masks if platform.system() == "Darwin" else mediapipe_masks
     print(f"{os.path.basename(clip)}: {info['width']}x{info['height']} @ {info['rate']} fps, "
-          f"engine={'Apple Vision' if gen is apple_vision_masks else 'MediaPipe selfie segmenter'}")
+          f"engine={'Apple Vision' if gen is apple_vision_masks else 'MediaPipe selfie multiclass (tiled)'}")
     wr = VideoWriter(out, info["width"], info["height"], info["rate"], pix="gray", crf=10)
     for m in gen(clip, info, a.seconds):
         wr.write(m)

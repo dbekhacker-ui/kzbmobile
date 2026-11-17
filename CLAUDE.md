@@ -18,7 +18,7 @@ Generated files sit next to it as `<name>_mask.mp4`, `<name>_hands.json`,
 
 | Script | Output | What it is |
 |---|---|---|
-| `mask.py [clip]` | `<name>_mask.mp4` | white = me, black = room, soft edges. Mac: Apple Vision person segmentation (accurate) via a swiftc-compiled helper; Windows/Linux: MediaPipe selfie segmenter. |
+| `mask.py [clip]` | `<name>_mask.mp4` | white = me, black = room, soft edges. Mac: Apple Vision person segmentation (accurate) via a swiftc-compiled helper; Windows/Linux: MediaPipe selfie multiclass model on overlapping square tiles (much cleaner than the plain selfie segmenter on tall phone video). |
 | `hands.py [clip]` | `<name>_hands.json` | up to 2 hands per frame: 21 points, score, which hand (`hand`), which half of the screen (`side`), gaps ≤3 frames filled. |
 | `face.py [clip]` | `<name>_face.json` | smoothed face box per frame. |
 | `put_back.py` | (library) | puts me back on top of any background. |

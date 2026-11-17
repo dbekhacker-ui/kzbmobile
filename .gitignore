@@ -11,3 +11,6 @@ __pycache__/
 *_hands.json
 *_face.json
 mask_preview.png
+logs/
+*.MOV
+*.MP4
