@@ -1,0 +1,39 @@
+{
+  "word": "IPHONE 15 PRO",
+  "note": "Times in seconds, from IMG_0811_words.json (Whisper). Text is corrected Uzbek; fix spelling here and re-render.",
+  "beats": [
+    {"type": "intro", "end": 4.50, "words": [["BUGUNGI", 2.26], ["ABZORIMIZ", 2.88], ["VA SOTUVIMIZDA", 3.42]]},
+
+    {"type": "line", "end": 5.60, "words": [["o'zining", 4.54], ["birinchi", 5.22]]},
+    {"type": "hit", "text": "TITAN", "t": 5.64, "sub": "korpusi", "sub_t": 6.16, "end": 6.84},
+    {"type": "line", "end": 7.50, "words": [["hamda", 6.86]]},
+    {"type": "hit", "text": "TYPE-C", "t": 7.54, "sub": "bilan kelib", "sub_t": 8.16, "end": 8.68},
+    {"type": "line", "end": 10.26, "words": [["iPhone'ning", 8.70], ["yangi", 9.42], ["darajasini", 9.80]]},
+    {"type": "line", "end": 11.06, "words": [["ochib", 10.28], ["bergan", 10.50], ["smartfon", 10.82]]},
+    {"type": "hero", "text": "IPHONE 15 PRO", "t": 11.10, "end": 13.45},
+
+    {"type": "line", "end": 15.12, "words": [["holati", 13.56], ["juda", 14.36], ["ham", 14.53], ["ideal", 14.70]]},
+    {"type": "hit", "text": "128 GB", "t": 15.18, "end": 16.50},
+    {"type": "line", "end": 17.18, "words": [["yomkostlari", 16.60]]},
+    {"type": "hit", "text": "78%", "t": 17.22, "end": 18.32},
+    {"type": "line", "end": 19.86, "words": [["karobka", 18.40], ["dokumentlari", 18.96], ["bor", 19.58]]},
+    {"type": "line", "end": 21.46, "words": [["SIM", 19.92], ["ham", 20.15], ["eSIM", 20.38], ["ham", 20.55], ["ro'yxatdan", 20.68], ["o'tgan", 20.96]]},
+    {"type": "hit", "text": "KZB MOBILE", "t": 21.52, "sub": "dan kelib", "sub_t": 22.54, "end": 23.12},
+    {"type": "line", "end": 23.80, "words": [["atigi", 23.20]]},
+    {"type": "hit", "text": "$550", "t": 23.84, "sub": "dollarga", "sub_t": 24.50, "end": 25.48},
+    {"type": "line", "end": 27.20, "words": [["xarid", 25.50], ["qilishingiz", 26.00], ["mumkin", 26.50]]},
+    {"type": "line", "end": 30.00, "words": [["hammangizni", 27.54], ["do'konimizda", 27.94], ["kutib", 28.58], ["qolamiz", 28.96]]}
+  ],
+
+  "zoom": [
+    [0.00, 1.00], [2.20, 1.00], [4.40, 1.07],
+    [5.62, 1.07], [5.82, 1.16], [7.40, 1.07],
+    [7.52, 1.07], [7.72, 1.15], [8.70, 1.06], [10.90, 1.00],
+    [11.08, 1.00], [11.35, 1.14], [13.20, 1.20], [13.90, 1.02],
+    [15.16, 1.02], [15.36, 1.11], [16.50, 1.04],
+    [17.20, 1.04], [17.40, 1.13], [18.30, 1.04], [19.80, 1.00],
+    [21.40, 1.06], [21.52, 1.06], [21.72, 1.15], [23.10, 1.07],
+    [23.82, 1.07], [24.02, 1.19], [25.50, 1.12], [26.90, 1.00],
+    [27.50, 1.00], [29.40, 1.06], [30.40, 1.00], [34.60, 1.00]
+  ]
+}

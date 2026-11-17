@@ -161,6 +161,13 @@ def refine(frame, raw, hands=None):
     # Hands the mask missed.
     alpha = np.maximum(alpha, patch)
     alpha = np.clip(alpha, 0, 1)
+    # Drop faint specks floating in the room: soft blobs with no solid part.
+    n, lab, stats, _ = cv2.connectedComponentsWithStats((alpha > 0.03).astype(np.uint8), connectivity=8)
+    if n > 2:
+        has_core = np.zeros(n, bool)
+        has_core[np.unique(lab[alpha >= 0.5])] = True
+        has_core[0] = True
+        alpha[~has_core[lab]] = 0
 
     # --- clean the old room out of the soft edge -------------------------
     sure_fg = (alpha >= 0.98).astype(np.float32)
@@ -197,10 +204,22 @@ class Layer:
 
 
 class PutBack:
-    def __init__(self, clip, seconds=None, mask=None, hands=None):
+    """Iterate the clip frame by frame with the person's alpha + cleaned colors.
+
+    Besides <name>_mask.mp4 it uses, when present:
+      <name>_hands.json  (hands.py)  hands filled in where the mask misses them
+      <name>_phone.mp4   (phone.py)  the phone in my hand counts as me
+    and it fills brief mask dropouts on fast motion: a pixel the mask lost in
+    this frame is restored when BOTH the previous and next frame (warped to
+    this one with optical flow) say it is me.
+    """
+
+    def __init__(self, clip, seconds=None, mask=None, hands=None, phone=None, temporal=True, start=None):
         self.clip = clip
         self.info = probe(clip)
         self.seconds = seconds
+        self.start = start or 0.0
+        self.temporal = temporal
         self.mask_path = mask or stem(clip) + "_mask.mp4"
         if not os.path.exists(self.mask_path):
             raise SystemExit(f"{self.mask_path} not found - run mask.py first")
@@ -208,12 +227,57 @@ class PutBack:
         self.hands = json.load(open(hp))["frames"] if os.path.exists(hp) else []
         if not self.hands:
             print("note: no hands json, hand fill-in disabled (run hands.py)")
+        pp = phone or stem(clip) + "_phone.mp4"
+        self.phone_path = pp if os.path.exists(pp) else None
+
+    def _raw(self):
+        """Yield (frame, raw person mask incl. phone)."""
+        w, h = self.info["width"], self.info["height"]
+        kw = dict(seconds=self.seconds, start=self.start)
+        frames = read_frames(self.clip, w, h, **kw)
+        masks = read_frames(self.mask_path, w, h, pix="gray", **kw)
+        if self.phone_path:
+            phones = read_frames(self.phone_path, w, h, pix="gray", **kw)
+        else:
+            phones = iter(lambda: None, 0)
+        for frame, m, ph in zip(frames, masks, phones):
+            yield frame, (m if ph is None else np.maximum(m, ph))
+
+    def _temporal(self, it):
+        """Motion-compensated fill of one-frame dropouts (never removes anything)."""
+        dis = cv2.DISOpticalFlow_create(cv2.DISOPTICAL_FLOW_PRESET_FAST)
+        w, h = self.info["width"], self.info["height"]
+        sw, sh = w // 2, h // 2
+        gx, gy = np.meshgrid(np.arange(sw, dtype=np.float32), np.arange(sh, dtype=np.float32))
+
+        def small_gray(f):
+            return cv2.cvtColor(cv2.resize(f, (sw, sh), interpolation=cv2.INTER_AREA), cv2.COLOR_RGB2GRAY)
+
+        def warp(cur_g, nb_g, nb_m):
+            flow = dis.calc(cur_g, nb_g, None)  # cur(x) ~ nb(x + flow)
+            small = cv2.resize(nb_m, (sw, sh), interpolation=cv2.INTER_AREA)
+            out = cv2.remap(small, gx + flow[..., 0], gy + flow[..., 1], cv2.INTER_LINEAR,
+                            borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+            return cv2.resize(out, (w, h), interpolation=cv2.INTER_LINEAR)
+
+        buf = []
+        for frame, m in it:
+            buf.append((frame, m, small_gray(frame)))
+            if len(buf) == 1:
+                yield frame, m                 # first frame: no previous one to agree with
+            elif len(buf) == 3:
+                (pf, pm, pg), (cf, cm, cg), (nf, nm, ng) = buf
+                agree = np.minimum(warp(cg, pg, pm), warp(cg, ng, nm))
+                yield cf, np.maximum(cm, agree)
+                buf.pop(0)
+        if len(buf) == 2:
+            yield buf[1][0], buf[1][1]         # last frame: no next one
 
     def __iter__(self):
-        w, h, fps = self.info["width"], self.info["height"], float(self.info["fps"])
-        frames = read_frames(self.clip, w, h, seconds=self.seconds)
-        masks = read_frames(self.mask_path, w, h, pix="gray", seconds=self.seconds)
-        for i, (frame, raw) in enumerate(zip(frames, masks)):
+        fps = float(self.info["fps"])
+        stream = self._temporal(self._raw()) if self.temporal else self._raw()
+        first = int(round(self.start * fps))
+        for i, (frame, raw) in enumerate(stream, start=first):
             hands = self.hands[i]["hands"] if i < len(self.hands) else []
             alpha, fg = refine(frame, raw, hands)
             yield Layer(i, i / fps, frame, alpha, fg, hands)

@@ -84,10 +84,14 @@ def probe(clip):
                 duration=dur, rotation=rot)
 
 
-def read_frames(clip, w, h, pix="rgb24", seconds=None):
-    """Yield every decoded frame (upright) as a numpy array, one per source frame."""
+def read_frames(clip, w, h, pix="rgb24", seconds=None, start=None):
+    """Yield every decoded frame (upright) as a numpy array, one per source frame.
+    start/seconds limit it to a section (for tests)."""
     ch = {"rgb24": 3, "gray": 1}[pix]
-    cmd = ["ffmpeg", "-v", "error", "-i", clip]
+    cmd = ["ffmpeg", "-v", "error"]
+    if start:
+        cmd += ["-ss", str(start)]
+    cmd += ["-i", clip]
     if seconds:
         cmd += ["-t", str(seconds)]
     cmd += ["-map", "0:v:0", "-fps_mode", "passthrough", "-f", "rawvideo", "-pix_fmt", pix, "-"]
@@ -111,10 +115,12 @@ class VideoWriter:
     """Pipe raw frames into ffmpeg. Constant frame rate = the clip's rate, so
     N frames in gives N frames out. Optionally copies the clip's audio untouched."""
 
-    def __init__(self, path, w, h, rate, pix="rgb24", audio_from=None, seconds=None, crf=14):
+    def __init__(self, path, w, h, rate, pix="rgb24", audio_from=None, seconds=None, crf=14, start=None):
         cmd = ["ffmpeg", "-v", "error", "-y",
                "-f", "rawvideo", "-pix_fmt", pix, "-s", f"{w}x{h}", "-r", rate, "-i", "-"]
         if audio_from:
+            if start:
+                cmd += ["-ss", str(start)]
             if seconds:
                 cmd += ["-t", str(seconds)]
             cmd += ["-i", audio_from, "-map", "0:v:0", "-map", "1:a?", "-c:a", "copy"]
