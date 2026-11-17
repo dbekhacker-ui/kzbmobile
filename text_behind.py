@@ -244,7 +244,7 @@ def beat_draws(b, t, W, H):
             draws.append(Draw(sp, x, y + rise - lift, 1.0, op))
 
     elif kind == "hit":
-        size = HIT_SIZE * H
+        size = HIT_SIZE * H * b.get("scale", 1.0)
         sp = sprite(b["text"], size)
         if sp.adv > MAX_W * W:
             size *= MAX_W * W / sp.adv

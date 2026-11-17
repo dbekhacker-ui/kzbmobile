@@ -25,6 +25,8 @@ Generated files sit next to it as `<name>_mask.mp4`, `<name>_hands.json`,
 | `face.py [clip]` | `<name>_face.json` | smoothed face box per frame. |
 | `phone.py [clip]` | `<name>_phone.mp4` | the phone in my hand (object detector + point segmenter, gaps bridged along my hand, checked by colour). Run after hands.py. |
 | `transcribe.py [clip] --lang uz` | `<name>_words.json` | what I say, word by word with times (faster-whisper large-v3). |
+| `voice.py [clip]` | `<name>_voice.wav` | my voice cleaned up like a clip-on mic (no AI), -14 LUFS. |
+| `sfx.py` | (library) | synthesised UI sounds (hook, pop, ding, tick, whoosh, chime) and a mixer that keeps them under my voice. |
 | `put_back.py` | (library) | puts me back on top of any background (uses mask + hands + phone, fills one-frame dropouts using motion). |
 
 All take `--seconds N` to only do the first N seconds (for tests); effects and `PutBack` also
@@ -36,6 +38,9 @@ JSON files are **fractions of the frame**: x from the screen's left edge, y from
 
 1. **Keep my audio exactly as it is.** Copy the original audio stream (`-c:a copy`);
    never re-encode, resample, trim, or mix it. `VideoWriter(..., audio_from=clip)` does this.
+   Exception, only when I ask for it (as in `/float-ui`): sound effects may be *added* under
+   my voice (my samples stay unchanged, just summed), and a separate cleaned-voice copy may be
+   made with `voice.py` (classic EQ/denoise/compression/loudness, never an AI voice).
 2. **Keep the size, frame rate and frame count** of the clip. Decode with
    `common.read_frames` (one array per source frame, rotation applied) and write with
    `common.VideoWriter` at `probe(clip)["rate"]`. Check the output with
@@ -66,6 +71,13 @@ JSON files are **fractions of the frame**: x from the screen's left edge, y from
 
 - `/text-behind WORD` (skill in `.claude/skills/text-behind`) makes `text-behind.mp4` with
   `text_behind.py`: the big word behind me, captions from `<name>_plan.json`, zooms.
+- `/float-ui PILL TEXT` (skill in `.claude/skills/float-ui`) makes `float-ui.mp4` and
+  `float-ui-clear-voice.mp4` with `float_ui.py`: frosted-glass windows (profile behind my
+  head, terminal and notification pill in front), small captions, zooms, sound effects,
+  end question.
+- `transcribe.py` cuts the speech into ~8 s chunks; don't give it a `--prompt` with names
+  (Whisper starts repeating them).
+- Several clips in this folder: always pass the clip path to every script.
 
 ## Checking work
 
