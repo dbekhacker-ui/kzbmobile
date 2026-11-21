@@ -6,6 +6,8 @@ argument-hint: "WORD (the big background word, e.g. IPHONE 15 PRO)"
 
 # /text-behind WORD
 
+Read `/reels-director` first, and finish with `/reels-qa`.
+
 Make `text-behind.mp4` from the clip in this folder: `WORD` big behind me, my speech as
 animated captions in the same style, zooms on the important moments. Follow `CLAUDE.md`
 (audio untouched, same size/fps/frame count, put me back with put_back.py, Pillow text,

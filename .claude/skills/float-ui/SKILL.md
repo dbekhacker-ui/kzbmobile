@@ -6,6 +6,8 @@ argument-hint: "PILL TEXT (e.g. iPhone 13 pro 128GB 77%)"
 
 # /float-ui [PILL TEXT]
 
+Read `/reels-director` first, and finish with `/reels-qa`.
+
 Make `float-ui.mp4` (my voice cleaned up by `voice.py` + sound effects; one version only)
 from the clip in this folder with `float_ui.py`. Follow
 `CLAUDE.md`:
@@ -61,8 +63,8 @@ The notification pill text is `$ARGUMENTS`, exactly as I typed it. If I gave non
 - `question`: a short, honest question that makes people comment, about the product in
   the video ("iPhone 13 Pro hali ham arziydimi?" with "Fikringizni izohda yozing"). Start
   it ~2 s before the end, after the windows have left. No emoji, no hype.
-- `cuts`: [[start, end], ...] in clip seconds for pauses where I lost my words. Find them
-  from 50 ms loudness (−45 dB or quieter for 0.3 s+) inside a sentence. Transcribe the pieces
+- `cuts`: [[start, end], ...] in clip seconds for pauses where I lost my words. Run
+  `silences.py <clip>`: its `suggested_cuts` are frame-aligned and already leave a breath. Transcribe the pieces
   before and after separately to make sure no word is repeated (if one is, cut the repeat
   too). Leave ~0.15 s of the pause. Whole frames are dropped, with a 15 ms audio crossfade.
 - `cut_zoom`: one [jump-to, settle-to] per cut, alternating in and out

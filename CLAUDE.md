@@ -25,6 +25,7 @@ Generated files sit next to it as `<name>_mask.mp4`, `<name>_hands.json`,
 | `face.py [clip]` | `<name>_face.json` | smoothed face box per frame. |
 | `phone.py [clip]` | `<name>_phone.mp4` | the phone in my hand (object detector + point segmenter, gaps bridged along my hand, checked by colour). Run after hands.py. |
 | `transcribe.py [clip] --lang uz` | `<name>_words.json` | what I say, word by word with times (faster-whisper large-v3). |
+| `silences.py [clip]` | `<name>_cuts.json` | dead start/end and mid-sentence stumble pauses, frame-aligned cut suggestions. |
 | `voice.py [clip]` | `<name>_voice.wav` | my voice cleaned up like a clip-on mic (no AI), -14 LUFS. |
 | `sfx.py` | (library) | synthesised UI sounds (hook, pop, ding, tick, whoosh, chime) and a mixer that keeps them under my voice. |
 | `put_back.py` | (library) | puts me back on top of any background (uses mask + hands + phone, fills one-frame dropouts using motion). |
@@ -69,6 +70,9 @@ JSON files are **fractions of the frame**: x from the screen's left edge, y from
    my actual hand (assumes an un-mirrored clip; run `hands.py --mirrored` for a mirrored one).
 
 ## Effects
+
+- Start every Reels job with `/reels-director` (audience data, lessons learned, quality bar),
+  write hooks/scripts with `/hook`, and finish every edit with `/reels-qa`.
 
 - `/text-behind WORD` (skill in `.claude/skills/text-behind`) makes `text-behind.mp4` with
   `text_behind.py`: the big word behind me, captions from `<name>_plan.json`, zooms.
