@@ -16,3 +16,4 @@ logs/
 *.MP4
 *_words.json
 *.wav
+*_cuts.json
